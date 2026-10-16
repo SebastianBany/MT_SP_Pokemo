@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/SebastianBany/MT_SP_Pokemo#readme",
   "dependencies": {
+    "bootstrap": "^5.3.8",
     "express": "^5.3.0",
     "express-ejs-layouts": "^2.5.1",
     "nodemon": "^3.1.14"
