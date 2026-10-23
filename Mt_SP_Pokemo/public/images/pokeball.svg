@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Pokeball">
+  <circle cx="50" cy="50" r="47" fill="#fff" stroke="#000" stroke-width="6"/>
+  <path d="M3 50a47 47 0 0 1 94 0H67a17 17 0 0 0-34 0z" fill="#ed1c24"/>
+  <path d="M3 50h30a17 17 0 0 0 34 0h30" fill="none" stroke="#000" stroke-width="7"/>
+  <circle cx="50" cy="50" r="17" fill="#fff" stroke="#000" stroke-width="7"/>
+</svg>

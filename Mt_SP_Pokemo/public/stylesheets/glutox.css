@@ -1,0 +1,17 @@
+.page-glutox .page-content {
+  max-width: 72rem;
+  min-height: 50vh;
+  text-align: left;
+  color: black;
+}
+
+.canvas-container {
+
+  border: 3px solid #000000;
+  display: flex;
+  align-items: center;     /* Vertikal zentrieren */
+  height: 100vh;           /* Volle Bildschirmhöhe */
+  margin: 0;
+
+}
+

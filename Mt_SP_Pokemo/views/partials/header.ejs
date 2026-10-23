@@ -1,13 +1,29 @@
 <nav class="navbar sm:navbar-expand bg-1 fg-2" aria-label="Hauptnavigation">
 	<div class="container-fluid">
 		<a class="navbar-brand" href="/">Pokemo</a>
-		<button class="btn-icon navbar-toggler" type="button" data-bs-toggle="drawer" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Menue oeffnen">
-			<span class="navbar-toggler-icon" aria-hidden="true"></span>
+		<!-- Maxi: (Pokeball-Menueknopf) Ein Klick auf das Bild oeffnet das Menue. -->
+		<button class="btn-icon navbar-toggler" type="button" onclick="openMenu()" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Menue oeffnen">
+			<img class="navbar-toggler-image" src="/images/pokeball.svg" alt="">
 		</button>
+		<!-- Maxi: Profilkarte -->
+		<div class="profile-card">
+			<div class="profile-picture">...</div>
+			<div class="profile-info">
+				<input type="text" id="username" placeholder="Username" maxlength="20" oninput="saveUsername()">
+				<!-- Maxi: Profilkarte -->
+				<p>Pokemo-Punkte: 0</p>
+				<p>Level 1</p>
+				<div class="xp-bar">
+					<div class="xp-progress"></div>
+				</div>
+				<p>0 XP</p>
+			</div>
+		</div>
+		<!-- Maxi: (Menuefenster) Hier stehen die Links, die beim Klick auf den Pokeball erscheinen. -->
 		<dialog class="drawer drawer-end" tabindex="-1" id="navbarNavAltMarkup" aria-labelledby="navbarNavAltMarkupLabel">
 			<div class="drawer-header">
 				<h2 class="drawer-title" id="navbarNavAltMarkupLabel">Menue</h2>
-				<button class="btn-close" type="button" data-bs-dismiss="drawer" aria-label="Menue schliessen">&times;</button>
+				<button class="btn-close" type="button" onclick="closeMenu()" aria-label="Menue schliessen">&times;</button>
 			</div>
 			<div class="drawer-body">
 				<div class="nav nav-pills navbar-nav">
@@ -20,33 +36,35 @@
 	</div>
 </nav>
 <script>
-	document.addEventListener('click', function (event) {
-		const toggle = event.target.closest('[data-bs-toggle="drawer"]');
-		const close = event.target.closest('[data-bs-dismiss="drawer"]');
-		const drawer = document.getElementById('navbarNavAltMarkup');
+	// Maxi: Username speichern
+	function saveUsername() {
+		var username = document.getElementById('username').value;
+		localStorage.setItem('username', username);
+	}
 
-		if (toggle && drawer) {
-			drawer.showModal();
-			toggle.setAttribute('aria-expanded', 'true');
-		} else if (close && drawer) {
-			drawer.close();
-			document.querySelector('[data-bs-toggle="drawer"]')?.setAttribute('aria-expanded', 'false');
-		}
-	});
+	var savedUsername = localStorage.getItem('username');
+	if (savedUsername) {
+		document.getElementById('username').value = savedUsername;
+	}
 
-	document.getElementById('navbarNavAltMarkup')?.addEventListener('close', function () {
-		document.querySelector('[data-bs-toggle="drawer"]')?.setAttribute('aria-expanded', 'false');
-	});
+	// Maxi: (Menue öffnen) Zeigt das Menuefenster und markiert den Knopf als geoeffnet.
+	function openMenu() {
+		var drawer = document.getElementById('navbarNavAltMarkup');
+		var menuButton = document.querySelector('.navbar-toggler');
 
-	document.getElementById('navbarNavAltMarkup')?.addEventListener('cancel', function () {
-		document.querySelector('[data-bs-toggle="drawer"]')?.setAttribute('aria-expanded', 'false');
-	});
+		drawer.showModal();
+		menuButton.setAttribute('aria-expanded', 'true');
+	}
 
-	document.addEventListener('keydown', function (event) {
-		const drawer = document.getElementById('navbarNavAltMarkup');
-		if (event.key === 'Escape' && drawer?.open) {
-			drawer.close();
-			document.querySelector('[data-bs-toggle="drawer"]')?.setAttribute('aria-expanded', 'false');
-		}
+	// Maxi: (Menue schliessen) Macht das Menuefenster wieder zu.
+	function closeMenu() {
+		var drawer = document.getElementById('navbarNavAltMarkup');
+		drawer.close();
+	}
+
+	// Maxi: (Menue-Status) Setzt den Knopf auf geschlossen, wenn das Menue zugeht.
+	document.getElementById('navbarNavAltMarkup').addEventListener('close', function () {
+		var menuButton = document.querySelector('.navbar-toggler');
+		menuButton.setAttribute('aria-expanded', 'false');
 	});
 </script>

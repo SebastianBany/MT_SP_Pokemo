@@ -22,11 +22,19 @@ server.get('/', (request, response) => {
 });
 
 server.get('/glutox', (request, response) => {
-  response.render('index', { title: 'Glutox', text: 'Glutox' });
+  response.render('glutox', {
+    title: 'Glutox',
+    pageCss: '/stylesheets/glutox.css',
+    pageJs: '/javascripts/glutox.js'
+  });
 });
 
 server.get('/pokecross', (request, response) => {
-  response.render('index', { title: 'Pokecross', text: 'Pokecross' });
+  response.render('pokecross', {
+    title: 'Pokecross',
+    pageCss: '/stylesheets/pokecross.css',
+    pageJs: '/javascripts/pokecross.js'
+  });
 });
 
 server.get('/impressum', (request, response) => {
