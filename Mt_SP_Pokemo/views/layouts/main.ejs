@@ -5,9 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
     <link rel="stylesheet" href="/stylesheets/style.css">
+    <% if (typeof pageCss !== 'undefined') { %>
+    <link rel="stylesheet" href="<%= pageCss %>">
+    <% } %>
 </head>
 <body>
     <%- include('../partials/header') %>
     <%- body %>
+    <%- include('../partials/footer') %>
+    <% if (typeof pageJs !== 'undefined') { %>
+    <script src="<%= pageJs %>" defer></script>
+    <% } %>
 </body>
 </html>
