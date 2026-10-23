@@ -18,11 +18,15 @@ server.set('layout', 'layouts/main');
 
 // Routes
 server.get('/', (request, response) => {
-  response.render('index', { title: 'Pokemo', text: 'Pokemo' });
+  response.render('index', { title: 'Pokemo', text: 'Willkommen bei Pokemo.' });
 });
 
-server.get('/anlegen', (request, response) => {
-  response.render('projectNew', { layout: 'layouts/special' });
+server.get('/glutox', (request, response) => {
+  response.render('index', { title: 'Glutox', text: 'Glutox' });
+});
+
+server.get('/pokecross', (request, response) => {
+  response.render('index', { title: 'Pokecross', text: 'Pokecross' });
 });
 
 module.exports = server;
