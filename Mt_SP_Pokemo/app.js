@@ -37,4 +37,8 @@ server.get('/pokecross', (request, response) => {
   });
 });
 
+server.get('/impressum', (request, response) => {
+  response.render('impressum', { title: 'Impressum' });
+});
+
 module.exports = server;

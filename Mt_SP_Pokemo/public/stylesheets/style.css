@@ -1,6 +1,60 @@
 body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+main {
+  flex: 1;
+}
+
+.legal-page {
+  width: min(100%, 860px);
+  margin: 0 auto;
+  padding: 0.5rem 0 2rem;
+  color: #242424;
+  line-height: 1.7;
+}
+
+.legal-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 3px solid #ff0000;
+}
+
+.legal-eyebrow {
+  margin: 0 0 0.35rem;
+  color: #b40000;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.legal-header h1 {
+  margin: 0;
+  font-size: 2.25rem;
+}
+
+.legal-section + .legal-section {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #d8d8d8;
+}
+
+.legal-section h2 {
+  margin: 0 0 1.25rem;
+  font-size: 1.4rem;
+}
+
+.legal-section h3 {
+  margin: 1.5rem 0 0.35rem;
+  font-size: 1rem;
+}
+
+.legal-section p {
+  margin: 0.35rem 0 0.75rem;
 }
 
 a {
@@ -9,19 +63,91 @@ a {
 
 .navbar {
   display: flex;
-  align-items: center;
-  min-height: 3.5rem;
+  align-items: stretch;
+  min-height: 20rem;
   margin: -50px -50px 2rem;
   padding: 0.75rem 1.25rem;
   background: #ff0000;
   color: #ffffff;
 }
 
+/* Maxi: (Header-Anordnung) Stellt Pokemo und den Pokeball untereinander. */
 .container-fluid {
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
   width: 100%;
+}
+
+/* Maxi: Profilkarte */
+.profile-card {
+  position: absolute;
+  top: 0.75rem;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+  box-sizing: border-box;
+  width: min(12rem, 42vw);
+  padding: 0.75rem;
+  border: 2px solid #111111;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #222222;
+}
+
+.profile-picture {
+  display: grid;
+  flex: 0 0 3.5rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  align-self: center;
+  place-items: center;
+  border: 1px solid #111111;
+  border-radius: 8px;
+  background: #eeeeee;
+  font-size: 2rem;
+}
+
+.profile-info {
+  min-width: 0;
+  width: 100%;
+}
+
+.profile-info p {
+  margin: 0.35rem 0;
+}
+
+.profile-info input {
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 0.25rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #222222;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+/* Maxi: XP-Balken */
+.xp-bar {
+  width: 100%;
+  height: 12px;
+  background-color: lightgray;
+  border: 1px solid black;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.xp-progress {
+  width: 0%;
+  height: 100%;
+  background-color: red;
 }
 
 .navbar a {
@@ -48,32 +174,14 @@ a {
   width: 2.75rem;
   height: 2.75rem;
   place-items: center;
-  border: 1px solid currentColor;
-  border-radius: 4px;
+  padding: 0;
 }
 
-.navbar-toggler-icon,
-.navbar-toggler-icon::before,
-.navbar-toggler-icon::after {
+.navbar-toggler-image {
   display: block;
-  width: 1.25rem;
-  height: 2px;
-  background: currentColor;
-  content: "";
+  width: 2.5rem;
+  height: 2.5rem;
 }
-
-.navbar-toggler-icon {
-  position: relative;
-}
-
-.navbar-toggler-icon::before,
-.navbar-toggler-icon::after {
-  position: absolute;
-  left: 0;
-}
-
-.navbar-toggler-icon::before { top: -6px; }
-.navbar-toggler-icon::after { top: 6px; }
 
 .drawer {
   position: fixed;
@@ -131,6 +239,59 @@ a {
   color: #183a37;
 }
 
+footer {
+  margin: 2rem -50px -50px;
+  padding: 1.25rem 3.125rem;
+  background: #ff0000;
+  color: #fff;
+}
+
+.footer-content {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-intro {
+  max-width: 42rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footer-intro h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+}
+
+.footer-intro p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.footer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.footer-brand,
+.footer-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.footer-brand {
+  font-weight: 700;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+}
+
 @keyframes drawer-in {
   from { transform: translateX(1rem); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
@@ -138,4 +299,19 @@ a {
 
 @media (prefers-reduced-motion: reduce) {
   .drawer[open] { animation: none; }
+}
+
+@media (max-width: 480px) {
+  footer {
+    padding-right: 1.25rem;
+    padding-left: 1.25rem;
+  }
+
+  .footer-content {
+    gap: 1.25rem;
+  }
+
+  .footer-meta {
+    flex-wrap: wrap;
+  }
 }
