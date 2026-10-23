@@ -1,6 +1,13 @@
 body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+main {
+  flex: 1;
 }
 
 a {
@@ -131,6 +138,36 @@ a {
   color: #183a37;
 }
 
+footer {
+  margin: 2rem -50px -50px;
+  padding: 1.25rem 3.125rem;
+  background: #183a37;
+  color: #fff;
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-brand,
+.footer-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.footer-brand {
+  font-weight: 700;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+}
+
 @keyframes drawer-in {
   from { transform: translateX(1rem); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
@@ -138,4 +175,15 @@ a {
 
 @media (prefers-reduced-motion: reduce) {
   .drawer[open] { animation: none; }
+}
+
+@media (max-width: 480px) {
+  footer {
+    padding-right: 1.25rem;
+    padding-left: 1.25rem;
+  }
+
+  .footer-content {
+    flex-wrap: wrap;
+  }
 }
