@@ -13,8 +13,8 @@ a {
   min-height: 3.5rem;
   margin: -50px -50px 2rem;
   padding: 0.75rem 1.25rem;
-  background: #183a37;
-  color: #fff;
+  background: #ff0000;
+  color: #ffffff;
 }
 
 .container-fluid {
@@ -30,8 +30,8 @@ a {
 }
 
 .navbar-brand {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: bold;
 }
 
 .btn-icon,
@@ -86,7 +86,7 @@ a {
   padding: 1.25rem;
   border: 0;
   background: #f4f6f1;
-  color: #183a37;
+  color: #000000;
 }
 
 .drawer[open] {
@@ -95,7 +95,7 @@ a {
 }
 
 .drawer::backdrop {
-  background: rgb(10 24 22 / 48%);
+  background: rgba(85, 85, 85, 0.48);
 }
 
 .drawer-header {
