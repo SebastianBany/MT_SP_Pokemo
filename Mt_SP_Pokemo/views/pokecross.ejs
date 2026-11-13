@@ -1,6 +1,65 @@
 <main class="page page-pokecross" data-page="pokecross">
-  <section class="page-content">
-    <h1>Pokecross</h1>
-    <p>Hier beginnt der Inhalt der Pokecross-Unterseite.</p>
-  </section>
+    <section class="game-shell">
+        <header class="game-heading">
+            <div>
+                <p class="game-eyebrow"><span class="eyebrow-mark"></span> POKEMO ARCADE <span>/</span> HIGH RISK RUN</p>
+                <h1>Pokecross<span class="heading-accent">.</span></h1>
+                <p class="game-subtitle">Ein Sprung mehr. Ein Multiplikator höher. Aber kennst du den richtigen Moment zum Aussteigen?</p>
+            </div>
+            <div class="round-chip"><span class="live-dot"></span> 22 FELDER <span class="chip-divider">/</span> 1 FALLE</div>
+        </header>
+
+        <section class="game-stats" aria-label="Spielstatus">
+            <article class="stat-card pokemon-stat">
+                <span class="stat-label">DEIN POKÉMON</span>
+                <strong id="pokemonName">Wird geladen ...</strong>
+                <small id="pokemonType">Verbindung mit PokéAPI</small>
+            </article>
+            <article class="stat-card multiplier-stat">
+                <span class="stat-label">AKTUELLER MULTIPLIKATOR</span>
+                <strong id="currentMultiplier">x1.0</strong>
+                <small>Wird beim Aussteigen gesichert</small>
+            </article>
+            <article class="stat-card progress-stat">
+                <div class="stat-row">
+                    <span class="stat-label">FORTSCHRITT</span>
+                    <strong id="jumpCounter">00 / 22</strong>
+                </div>
+                <div class="progress-track" aria-hidden="true"><span id="jumpProgress"></span></div>
+                <small>Jeder sichere Sprung erhöht den Einsatz.</small>
+            </article>
+        </section>
+
+        <section class="game-panel" aria-label="Pokecross-Spiel">
+            <header class="game-panel-header">
+                <div>
+                    <span class="panel-kicker">RISK RUN</span>
+                    <h2>Der nächste Sprung?</h2>
+                </div>
+                <span class="state-chip" id="gameStateLabel" data-state="loading">POKÉMON LÄDT</span>
+            </header>
+
+            <div class="canvas-container">
+                <canvas id="canvasPokecross" width="1280" height="460" role="img" aria-label="Spielfeld mit 22 Sprungkreisen und deinem Pokémon">
+                    Dein Browser unterstützt das Canvas-Element nicht.
+                </canvas>
+            </div>
+
+            <div class="pokecross-controls">
+                <button class="pokecross-button pokecross-button-start" id="startGame" type="button" disabled>Pokémon wird geladen ...</button>
+                <button class="pokecross-button pokecross-button-cross" id="crossButton" type="button" hidden disabled>Cross springen</button>
+                <button class="pokecross-button pokecross-button-exit" id="exitButton" type="button" hidden disabled>Aussteigen</button>
+            </div>
+
+            <div class="game-panel-footer">
+                <p class="game-status" id="gameStatus" role="status" aria-live="polite">Dein Pokémon wird aus der PokéAPI geladen.</p>
+                <span class="game-hint">TIPP: Sichere deinen Gewinn, bevor du zu gierig wirst.</span>
+            </div>
+        </section>
+
+        <aside class="game-rules">
+            <span class="rules-icon" aria-hidden="true">!</span>
+            <p><strong>Spielregel</strong> Eine geheime Falle liegt auf einem der 22 Felder. Landest du darauf, verlierst du den Multiplikator dieser Runde.</p>
+        </aside>
+    </section>
 </main>
