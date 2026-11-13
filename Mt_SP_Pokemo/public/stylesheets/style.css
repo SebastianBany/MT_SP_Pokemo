@@ -64,7 +64,6 @@ a {
 .navbar {
   display: flex;
   align-items: stretch;
-  min-height: 10rem;
   margin: -50px -50px 2rem;
   padding: 0.75rem 1.25rem;
   background: #ff0000;
@@ -75,20 +74,32 @@ a {
 .container-fluid {
   position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.25rem;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 1rem;
   width: 100%;
 }
 
+/* Pokemo und Menueknopf nebeneinander */
+.brand-group {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.75rem;
+  align-self: center;
+}
+
+/* Profilkarte bestimmt die Headerhoehe */
 .profile-card {
-  position: absolute;
-  top: 0.75rem;
-  right: 0;
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 0.75rem;
+  flex: 0 1 auto;
+  order: 2;
+  align-self: center;
+  margin-left: auto;
   box-sizing: border-box;
   width: min(28rem, 65vw);
   padding: 0.5rem 0.75rem;
@@ -192,15 +203,16 @@ a {
 }
 
 
-/* Menue: rechts neben dem Pokemo-Logo anzeigen */
+/* Menue: neben dem Logo und so hoch wie der Header */
 .drawer {
-  position: fixed;
-  inset: 0.75rem auto auto 9.5rem;
+  position: static;
+  order: 1;
+  align-self: stretch;
   width: max-content;
   max-width: calc(100vw - 11rem);
   height: auto;
   max-height: none;
-  margin: 0;
+  margin: -0.75rem 0;
   padding: 0.75rem;
   border: 0;
   border-radius: 8px;
@@ -247,9 +259,8 @@ a {
   border-radius: 4px;
 }
 
-.nav-link:hover,
-.nav-link.active {
-  background: #d9e6df;
+.nav-link:hover {
+  background: #d9d9d9;
   color: #183a37;
 }
 
@@ -336,6 +347,16 @@ footer {
 }
 
 @media (max-width: 480px) {
+  .container-fluid {
+    flex-wrap: wrap;
+  }
+
+  .profile-card {
+    width: 100%;
+    max-width: 28rem;
+    margin-left: auto;
+  }
+
   footer {
     padding-right: 1.25rem;
     padding-left: 1.25rem;
