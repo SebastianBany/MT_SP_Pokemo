@@ -40,5 +40,8 @@ server.get('/pokecross', (request, response) => {
 server.get('/impressum', (request, response) => {
   response.render('impressum', { title: 'Impressum' });
 });
+server.get('/datenschutz', (request, response) => {
+  response.render('datenschutz', { title: 'Datenschutz' });
+});
 
 module.exports = server;
