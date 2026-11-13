@@ -7,5 +7,9 @@
 </head>
 <body>
     <%- body %>
+    <script src="/javascripts/pokeapi.js" defer></script>
+    <% if (typeof pageJs !== 'undefined') { %>
+    <script src="<%= pageJs %>" defer></script>
+    <% } %>
 </body>
 </html>
