@@ -64,14 +64,14 @@ a {
 .navbar {
   display: flex;
   align-items: stretch;
-  min-height: 20rem;
+  min-height: 10rem;
   margin: -50px -50px 2rem;
   padding: 0.75rem 1.25rem;
   background: #ff0000;
   color: #ffffff;
 }
 
-/* Maxi: (Header-Anordnung) Stellt Pokemo und den Pokeball untereinander. */
+
 .container-fluid {
   position: relative;
   display: flex;
@@ -81,18 +81,17 @@ a {
   width: 100%;
 }
 
-/* Maxi: Profilkarte */
 .profile-card {
   position: absolute;
   top: 0.75rem;
   right: 0;
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  flex-direction: row;
+  align-items: center;
   gap: 0.75rem;
   box-sizing: border-box;
-  width: min(12rem, 42vw);
-  padding: 0.75rem;
+  width: min(28rem, 65vw);
+  padding: 0.5rem 0.75rem;
   border: 2px solid #111111;
   border-radius: 12px;
   background: #ffffff;
@@ -101,10 +100,9 @@ a {
 
 .profile-picture {
   display: grid;
-  flex: 0 0 3.5rem;
-  width: 3.5rem;
-  height: 3.5rem;
-  align-self: center;
+  flex: 0 0 3rem;
+  width: 3rem;
+  height: 3rem;
   place-items: center;
   border: 1px solid #111111;
   border-radius: 8px;
@@ -113,18 +111,23 @@ a {
 }
 
 .profile-info {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
   min-width: 0;
   width: 100%;
 }
 
 .profile-info p {
-  margin: 0.35rem 0;
+  margin: 0;
 }
 
 .profile-info input {
+  grid-column: 1 / -1;
   box-sizing: border-box;
   width: 100%;
-  margin-bottom: 0.25rem;
+  margin: 0;
   padding: 0;
   border: 0;
   background: transparent;
@@ -137,11 +140,16 @@ a {
 /* Maxi: XP-Balken */
 .xp-bar {
   width: 100%;
-  height: 12px;
+  height: 10px;
   background-color: lightgray;
   border: 1px solid black;
   border-radius: 5px;
   overflow: hidden;
+}
+
+.profile-info p:nth-of-type(3) {
+  grid-column: 2;
+  grid-row: 3;
 }
 
 .xp-progress {
@@ -183,18 +191,22 @@ a {
   height: 2.5rem;
 }
 
+
+/* Menue: rechts neben dem Pokemo-Logo anzeigen */
 .drawer {
   position: fixed;
-  inset: 0 0 0 auto;
-  width: min(22rem, 88vw);
-  max-width: none;
-  height: 100%;
+  inset: 0.75rem auto auto 9.5rem;
+  width: max-content;
+  max-width: calc(100vw - 11rem);
+  height: auto;
   max-height: none;
   margin: 0;
-  padding: 1.25rem;
+  padding: 0.75rem;
   border: 0;
+  border-radius: 8px;
   background: #f4f6f1;
   color: #000000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .drawer[open] {
@@ -210,7 +222,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .drawer-title {
@@ -223,8 +235,10 @@ a {
   font-size: 1.75rem;
 }
 
+
 .navbar-nav {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
@@ -270,31 +284,51 @@ footer {
 }
 
 .footer-meta {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
   padding-top: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.4);
 }
 
-.footer-brand,
-.footer-link {
+.footer-meta-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+}
+
+.footer-meta-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.footer-link,
+.footer-home {
   color: inherit;
   text-decoration: none;
 }
 
-.footer-brand {
+.footer-copyright {
   font-weight: 700;
 }
 
-.footer-link:hover {
+.footer-meta-right {
+  justify-self: end;
+  text-align: right;
+}
+
+.footer-link:hover,
+.footer-home:hover {
   text-decoration: underline;
 }
 
 @keyframes drawer-in {
-  from { transform: translateX(1rem); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from { transform: translateY(-0.5rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -312,6 +346,17 @@ footer {
   }
 
   .footer-meta {
-    flex-wrap: wrap;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .footer-meta-left {
+    align-items: center;
+  }
+
+  .footer-meta-right {
+    justify-self: center;
+    text-align: center;
   }
 }
