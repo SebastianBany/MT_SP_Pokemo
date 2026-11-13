@@ -1,16 +1,16 @@
 <nav class="navbar sm:navbar-expand bg-1 fg-2" aria-label="Hauptnavigation">
 	<div class="container-fluid">
 		<a class="navbar-brand" href="/">Pokemo</a>
-		<!-- Maxi: (Pokeball-Menueknopf) Ein Klick auf das Bild oeffnet das Menue. -->
-		<button class="btn-icon navbar-toggler" type="button" onclick="openMenu()" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Menue oeffnen">
+		
+		<button class="btn-icon navbar-toggler" type="button" onclick="openMenu()" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Menü öffnen">
 			<img class="navbar-toggler-image" src="/images/pokeball.svg" alt="">
 		</button>
-		<!-- Maxi: Profilkarte -->
+		
 		<div class="profile-card">
 			<div class="profile-picture">...</div>
 			<div class="profile-info">
 				<input type="text" id="username" placeholder="Username" maxlength="20" oninput="saveUsername()">
-				<!-- Maxi: Profilkarte -->
+				
 				<p>Pokemo-Punkte: 0</p>
 				<p>Level 1</p>
 				<div class="xp-bar">
@@ -19,11 +19,11 @@
 				<p>0 XP</p>
 			</div>
 		</div>
-		<!-- Maxi: (Menuefenster) Hier stehen die Links, die beim Klick auf den Pokeball erscheinen. -->
+		
 		<dialog class="drawer drawer-end" tabindex="-1" id="navbarNavAltMarkup" aria-labelledby="navbarNavAltMarkupLabel">
 			<div class="drawer-header">
-				<h2 class="drawer-title" id="navbarNavAltMarkupLabel">Menue</h2>
-				<button class="btn-close" type="button" onclick="closeMenu()" aria-label="Menue schliessen">&times;</button>
+				<h2 class="drawer-title" id="navbarNavAltMarkupLabel">Menü</h2>
+				<button class="btn-close" type="button" onclick="closeMenu()" aria-label="Menü schließen">&times;</button>
 			</div>
 			<div class="drawer-body">
 				<div class="nav nav-pills navbar-nav">
@@ -36,7 +36,7 @@
 	</div>
 </nav>
 <script>
-	// Maxi: Username speichern
+	
 	function saveUsername() {
 		var username = document.getElementById('username').value;
 		localStorage.setItem('username', username);
@@ -47,24 +47,33 @@
 		document.getElementById('username').value = savedUsername;
 	}
 
-	// Maxi: (Menue öffnen) Zeigt das Menuefenster und markiert den Knopf als geoeffnet.
+	
 	function openMenu() {
 		var drawer = document.getElementById('navbarNavAltMarkup');
 		var menuButton = document.querySelector('.navbar-toggler');
 
-		drawer.showModal();
+		drawer.show();
 		menuButton.setAttribute('aria-expanded', 'true');
 	}
 
-	// Maxi: (Menue schliessen) Macht das Menuefenster wieder zu.
+	
 	function closeMenu() {
 		var drawer = document.getElementById('navbarNavAltMarkup');
 		drawer.close();
 	}
 
-	// Maxi: (Menue-Status) Setzt den Knopf auf geschlossen, wenn das Menue zugeht.
+	
 	document.getElementById('navbarNavAltMarkup').addEventListener('close', function () {
 		var menuButton = document.querySelector('.navbar-toggler');
 		menuButton.setAttribute('aria-expanded', 'false');
+	});
+
+	document.addEventListener('click', function (event) {
+		var drawer = document.getElementById('navbarNavAltMarkup');
+		var menuButton = document.querySelector('.navbar-toggler');
+
+		if (drawer.open && !drawer.contains(event.target) && !menuButton.contains(event.target)) {
+			closeMenu();
+		}
 	});
 </script>
