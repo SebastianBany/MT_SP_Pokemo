@@ -8,11 +8,13 @@
     <% if (typeof pageCss !== 'undefined') { %>
     <link rel="stylesheet" href="<%= pageCss %>">
     <% } %>
+    <script src="/javascripts/pokemo-points.js" defer></script>
+    <script src="/javascripts/pokemo-profile.js" defer></script>
+    <script src="/javascripts/pokeapi.js" defer></script>
 </head>
 <body>
     <%- include('../partials/header') %>
     <%- body %>
-    <script src="/javascripts/pokeapi.js" defer></script>
     <% if (typeof pageJs !== 'undefined') { %>
     <script src="<%= pageJs %>" defer></script>
     <% } %>

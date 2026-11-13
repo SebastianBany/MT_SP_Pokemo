@@ -1,24 +1,27 @@
 (function () {
     const circleCount = 22;
-    const multiplierStep = 0.1;
-    const maximumPokemonId = 1025;
+    const visibleCircleCount = 5;
+    const firstJumpSurvivalChance = 0.95;
+    const lastJumpSurvivalChance = 0.2;
     const animationDuration = 380;
     const canvas = document.getElementById('canvasPokecross');
+    const canvasContainer = canvas && canvas.parentElement;
     const startButton = document.getElementById('startGame');
     const crossButton = document.getElementById('crossButton');
     const exitButton = document.getElementById('exitButton');
+    const stakeInput = document.getElementById('stakeAmount');
+    const betPanel = document.getElementById('gameBet');
+    const availablePoints = document.getElementById('availablePoints');
     const status = document.getElementById('gameStatus');
     const gameStateLabel = document.getElementById('gameStateLabel');
-    const currentMultiplier = document.getElementById('currentMultiplier');
-    const jumpCounter = document.getElementById('jumpCounter');
-    const jumpProgress = document.getElementById('jumpProgress');
-    const pokemonName = document.getElementById('pokemonName');
-    const pokemonType = document.getElementById('pokemonType');
 
-    if (!canvas || !startButton || !crossButton || !exitButton || !status
-        || !gameStateLabel || !currentMultiplier || !jumpCounter || !jumpProgress
-        || !pokemonName || !pokemonType) {
+    if (!canvas || !canvasContainer || !startButton || !crossButton || !exitButton
+        || !stakeInput || !betPanel || !availablePoints || !status || !gameStateLabel) {
         throw new Error('Pokecross is missing required game elements.');
+    }
+
+    if (!window.PokemoPoints || !window.PokemoProfile || !window.PokeAPI) {
+        throw new Error('Pokecross requires the shared Pokémo profile and points services.');
     }
 
     const context = canvas.getContext('2d');
@@ -27,96 +30,77 @@
     }
 
     let gameState = 'loading';
-    let losingJump = null;
+    let failedJump = null;
     let position = 0;
     let animation = null;
     let pokemonImage = null;
     let pokemonReady = false;
+    let currentStake = 0;
 
     function multiplierFor(jump) {
-        return (1 + jump * multiplierStep).toFixed(1);
+        if (jump <= 0) {
+            return 1;
+        }
+
+        return Math.pow(circleCount, (jump - 1) / (circleCount - 1));
+    }
+
+    function survivalChanceFor(jump) {
+        const progress = (jump - 1) / (circleCount - 1);
+        return firstJumpSurvivalChance
+            * Math.pow(lastJumpSurvivalChance / firstJumpSurvivalChance, progress);
+    }
+
+    function formatMultiplier(jump) {
+        return Number(multiplierFor(jump).toFixed(2)).toString();
+    }
+
+    function stakeForRound() {
+        const stake = stakeInput.valueAsNumber;
+        return Number.isSafeInteger(stake) && stake > 0 ? stake : null;
     }
 
     function getLayout() {
-        const width = canvas.clientWidth;
-        const height = canvas.clientHeight;
-        const margin = Math.max(112, Math.min(148, width * 0.11));
-        const spacing = (width - margin * 2) / (circleCount - 1);
+        const viewportWidth = canvasContainer.clientWidth;
+        const height = canvasContainer.clientHeight;
+        const margin = Math.max(44, Math.min(76, viewportWidth * 0.12));
+        const spacing = (viewportWidth - margin * 2) / visibleCircleCount;
+        const width = margin * 2 + spacing * circleCount;
+
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
 
         return {
             width,
             height,
+            viewportWidth,
             margin,
             spacing,
-            centerY: height * 0.7,
-            radius: Math.min(20, spacing * 0.35, height * 0.055)
+            centerY: height * 0.68,
+            radius: Math.min(48, spacing * 0.35, height * 0.14)
         };
     }
 
     function xForPosition(jump, layout) {
-        if (jump === 0) {
-            return layout.margin * 0.6;
-        }
-        return layout.margin + (jump - 1) * layout.spacing;
+        return layout.margin + jump * layout.spacing;
     }
 
     function drawBackground(layout) {
-        const background = context.createLinearGradient(0, 0, 0, layout.height);
-        background.addColorStop(0, '#111d2b');
-        background.addColorStop(1, '#080d16');
-        context.fillStyle = background;
+        context.fillStyle = '#f3edcf';
         context.fillRect(0, 0, layout.width, layout.height);
-
-        const glow = context.createRadialGradient(
-            layout.width * 0.5,
-            layout.centerY * 0.75,
-            12,
-            layout.width * 0.5,
-            layout.centerY * 0.75,
-            layout.width * 0.62
-        );
-        glow.addColorStop(0, 'rgba(53, 206, 178, 0.12)');
-        glow.addColorStop(0.55, 'rgba(105, 91, 214, 0.06)');
-        glow.addColorStop(1, 'rgba(8, 13, 22, 0)');
-        context.fillStyle = glow;
-        context.fillRect(0, 0, layout.width, layout.height);
-
-        context.save();
-        context.strokeStyle = 'rgba(173, 203, 221, 0.045)';
-        context.lineWidth = 1;
-        for (let x = 0; x <= layout.width; x += 48) {
-            context.beginPath();
-            context.moveTo(x, 0);
-            context.lineTo(x, layout.height);
-            context.stroke();
-        }
-        for (let y = 0; y <= layout.height; y += 48) {
-            context.beginPath();
-            context.moveTo(0, y);
-            context.lineTo(layout.width, y);
-            context.stroke();
-        }
-        context.restore();
     }
 
     function drawTrack(layout) {
-        const track = context.createLinearGradient(layout.margin, 0, layout.width - layout.margin, 0);
-        track.addColorStop(0, '#41e5bd');
-        track.addColorStop(0.5, '#67c8f4');
-        track.addColorStop(1, '#9477ff');
-
         context.save();
         context.beginPath();
-        context.moveTo(layout.margin, layout.centerY);
-        context.lineTo(layout.width - layout.margin, layout.centerY);
-        context.lineWidth = 5;
+        context.moveTo(xForPosition(0, layout), layout.centerY);
+        context.lineTo(xForPosition(circleCount, layout), layout.centerY);
+        context.lineWidth = 8;
         context.lineCap = 'round';
-        context.strokeStyle = 'rgba(114, 139, 165, 0.22)';
+        context.strokeStyle = '#d9e7bc';
         context.stroke();
-        context.shadowColor = 'rgba(75, 224, 199, 0.52)';
-        context.shadowBlur = 14;
-        context.strokeStyle = track;
-        context.lineWidth = 2;
+        context.strokeStyle = '#a8c77d';
+        context.lineWidth = 3;
         context.stroke();
         context.restore();
 
@@ -124,24 +108,24 @@
         context.font = '700 10px Arial';
         context.textAlign = 'center';
         context.textBaseline = 'middle';
-        context.fillStyle = 'rgba(174, 193, 212, 0.72)';
-        context.fillText('START', xForPosition(0, layout), layout.centerY + layout.radius + 31);
-        context.fillText('CASH OUT', layout.width - layout.margin, layout.centerY + layout.radius + 31);
+        context.fillStyle = '#73865c';
+        context.fillText('START', xForPosition(0, layout), layout.centerY + layout.radius + 30);
+        context.fillText('ZIEL', xForPosition(circleCount, layout), layout.centerY + layout.radius + 30);
         context.restore();
     }
 
     function drawCircles(layout) {
-        const revealLosingCircle = gameState !== 'playing' && losingJump !== null;
+        const revealFailedCircle = gameState !== 'playing' && failedJump !== null;
 
         for (let jump = 1; jump <= circleCount; jump += 1) {
             const x = xForPosition(jump, layout);
-            const isLosingCircle = revealLosingCircle && jump === losingJump;
-            const hasPassed = jump <= position && !isLosingCircle;
+            const isFailedCircle = revealFailedCircle && jump === failedJump;
+            const hasPassed = jump <= position && !isFailedCircle;
 
             context.save();
             context.beginPath();
             context.arc(x, layout.centerY, layout.radius, 0, Math.PI * 2);
-            if (isLosingCircle) {
+            if (isFailedCircle) {
                 const danger = context.createRadialGradient(x - 5, layout.centerY - 7, 2, x, layout.centerY, layout.radius * 1.4);
                 danger.addColorStop(0, '#ff817d');
                 danger.addColorStop(1, '#a8233e');
@@ -149,34 +133,34 @@
                 context.shadowColor = 'rgba(255, 74, 94, 0.75)';
             } else if (hasPassed) {
                 const safe = context.createRadialGradient(x - 5, layout.centerY - 7, 2, x, layout.centerY, layout.radius * 1.4);
-                safe.addColorStop(0, '#a5ffe6');
-                safe.addColorStop(1, '#32b995');
+                safe.addColorStop(0, '#d7f0a9');
+                safe.addColorStop(1, '#8ebc58');
                 context.fillStyle = safe;
-                context.shadowColor = 'rgba(65, 229, 189, 0.6)';
+                context.shadowColor = 'rgba(115, 160, 65, 0.28)';
             } else {
                 const idle = context.createRadialGradient(x - 5, layout.centerY - 7, 2, x, layout.centerY, layout.radius * 1.4);
-                idle.addColorStop(0, '#26374b');
-                idle.addColorStop(1, '#152131');
+                idle.addColorStop(0, '#ffffff');
+                idle.addColorStop(1, '#eaf2d8');
                 context.fillStyle = idle;
-                context.shadowColor = 'rgba(91, 134, 174, 0.22)';
+                context.shadowColor = 'rgba(91, 119, 62, 0.16)';
             }
-            context.shadowBlur = isLosingCircle || hasPassed ? 15 : 8;
+            context.shadowBlur = isFailedCircle || hasPassed ? 8 : 5;
             context.fill();
             context.shadowBlur = 0;
-            context.lineWidth = isLosingCircle ? 2 : 1;
-            context.strokeStyle = isLosingCircle
-                ? 'rgba(255, 177, 174, 0.9)'
-                : hasPassed ? 'rgba(185, 255, 228, 0.76)' : 'rgba(163, 191, 220, 0.3)';
+            context.lineWidth = isFailedCircle ? 3 : 2;
+            context.strokeStyle = isFailedCircle
+                ? '#d97662'
+                : hasPassed ? '#79a547' : '#c5d3aa';
             context.stroke();
 
-            context.fillStyle = isLosingCircle ? '#ffffff' : hasPassed ? '#07271e' : '#d8e4f0';
-            context.font = `700 ${Math.max(8, Math.min(10, layout.radius * 0.55))}px Arial`;
+            context.fillStyle = isFailedCircle ? '#ffffff' : '#425638';
+            context.font = `700 ${Math.max(12, Math.min(17, layout.radius * 0.43))}px Arial`;
             context.textAlign = 'center';
             context.textBaseline = 'middle';
-            context.fillText(`x${multiplierFor(jump)}`, x, layout.centerY);
+            context.fillText(`x${formatMultiplier(jump)}`, x, layout.centerY);
 
-            context.fillStyle = 'rgba(170, 190, 211, 0.62)';
-            context.font = '600 9px Arial';
+            context.fillStyle = '#73865c';
+            context.font = '700 11px Arial';
             context.fillText(String(jump).padStart(2, '0'), x, layout.centerY + layout.radius + 16);
             context.restore();
         }
@@ -188,7 +172,7 @@
 
         context.save();
         context.globalAlpha = animation ? 0.62 : 0.32;
-        context.fillStyle = '#50e8c1';
+        context.fillStyle = '#9fbd75';
         context.beginPath();
         context.ellipse(x, groundY + 9, layout.radius * 0.8, 4, 0, 0, Math.PI * 2);
         context.fill();
@@ -198,9 +182,9 @@
             context.save();
             context.beginPath();
             context.arc(x, groundY - 27 - jumpHeight, 18, 0, Math.PI * 2);
-            context.fillStyle = 'rgba(78, 221, 192, 0.2)';
+            context.fillStyle = 'rgba(132, 174, 87, 0.22)';
             context.fill();
-            context.strokeStyle = 'rgba(129, 246, 220, 0.65)';
+            context.strokeStyle = 'rgba(106, 151, 66, 0.7)';
             context.lineWidth = 2;
             context.stroke();
             context.restore();
@@ -210,8 +194,8 @@
         const aspectRatio = pokemonImage.width / pokemonImage.height || 1;
         const spriteWidth = spriteHeight * aspectRatio;
         context.save();
-        context.shadowColor = 'rgba(70, 235, 196, 0.68)';
-        context.shadowBlur = 22;
+        context.shadowColor = 'rgba(99, 138, 58, 0.24)';
+        context.shadowBlur = 12;
         context.drawImage(
             pokemonImage,
             x - spriteWidth / 2,
@@ -239,22 +223,25 @@
                 + (xForPosition(animation.to, layout) - xForPosition(animation.from, layout)) * easedProgress;
             jumpHeight = Math.sin(progress * Math.PI) * Math.min(78, layout.height * 0.22);
         }
+        const cameraOffset = Math.max(0, playerX - layout.viewportWidth / 2);
+        canvas.style.transform = `translate3d(${-cameraOffset}px, 0, 0)`;
         drawPokemon(playerX, layout, jumpHeight);
     }
 
     function resizeCanvas() {
-        const width = canvas.clientWidth;
-        const height = canvas.clientHeight;
+        const layout = getLayout();
         const pixelRatio = window.devicePixelRatio || 1;
 
-        canvas.width = Math.round(width * pixelRatio);
-        canvas.height = Math.round(height * pixelRatio);
+        canvas.width = Math.round(layout.width * pixelRatio);
+        canvas.height = Math.round(layout.height * pixelRatio);
         context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
         draw();
     }
 
     function updateInterface() {
         const isPlaying = gameState === 'playing';
+        const balance = window.PokemoPoints.getBalance();
+        const stake = stakeForRound();
         const labels = {
             loading: 'POKÉMON LÄDT',
             ready: 'BEREIT',
@@ -267,7 +254,11 @@
         startButton.hidden = isPlaying;
         crossButton.hidden = !isPlaying;
         exitButton.hidden = !isPlaying;
-        startButton.disabled = gameState === 'loading';
+        betPanel.hidden = isPlaying;
+        availablePoints.textContent = balance.toLocaleString('de-DE');
+        stakeInput.max = String(Math.floor(balance));
+        startButton.disabled = gameState === 'loading'
+            || (gameState !== 'load-error' && (!pokemonReady || stake === null || stake > balance));
         startButton.textContent = gameState === 'loading'
             ? 'Pokémon wird geladen ...'
             : gameState === 'load-error'
@@ -275,15 +266,9 @@
                 : gameState === 'ready' ? 'Runde starten' : 'Neue Runde';
         crossButton.disabled = Boolean(animation) || position >= circleCount;
         exitButton.disabled = Boolean(animation);
+        exitButton.textContent = `Aussteigen (x${formatMultiplier(position)})`;
         gameStateLabel.textContent = labels[gameState];
         gameStateLabel.dataset.state = gameState;
-        currentMultiplier.textContent = `x${multiplierFor(position)}`;
-        jumpCounter.textContent = `${String(position).padStart(2, '0')} / ${circleCount}`;
-        jumpProgress.style.width = `${position / circleCount * 100}%`;
-    }
-
-    function formatName(name) {
-        return name.split('-').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
     }
 
     function spriteUrlsFor(pokemon) {
@@ -316,8 +301,6 @@
         pokemonReady = false;
         pokemonImage = null;
         gameState = 'load-error';
-        pokemonName.textContent = 'Pokémon nicht verfügbar';
-        pokemonType.textContent = 'PokéAPI-Verbindung prüfen';
         status.textContent = 'Das Pokémon konnte nicht geladen werden. Prüfe deine Verbindung und versuche es erneut.';
         updateInterface();
         draw();
@@ -327,8 +310,6 @@
         gameState = 'loading';
         pokemonReady = false;
         status.textContent = 'Ein Pokémon wird aus der PokéAPI geladen ...';
-        pokemonName.textContent = 'Wird geladen ...';
-        pokemonType.textContent = 'PokéAPI';
         updateInterface();
         draw();
 
@@ -337,15 +318,13 @@
             return;
         }
 
-        const pokemonId = Math.floor(Math.random() * maximumPokemonId) + 1;
+        const pokemonId = window.PokemoProfile.getStarterPokemonId();
         window.PokeAPI.getPokemon(pokemonId)
             .then((pokemon) => loadSprite(spriteUrlsFor(pokemon), 0).then((image) => ({ pokemon, image })))
             .then(({ pokemon, image }) => {
                 pokemonImage = image;
                 pokemonReady = true;
                 gameState = 'ready';
-                pokemonName.textContent = formatName(pokemon.name);
-                pokemonType.textContent = pokemon.types.map((entry) => formatName(entry.type.name)).join(' / ');
                 status.textContent = 'Dein Pokémon ist bereit. Wie weit traust du dich?';
                 updateInterface();
                 draw();
@@ -358,9 +337,21 @@
             return;
         }
 
-        losingJump = Math.floor(Math.random() * circleCount) + 1;
+        const stake = stakeForRound();
+        const balance = window.PokemoPoints.getBalance();
+        if (stake === null || stake > balance) {
+            status.textContent = 'Der Einsatz muss eine positive ganze Zahl sein und darf dein Guthaben nicht überschreiten.';
+            updateInterface();
+            stakeInput.focus();
+            return;
+        }
+
+        currentStake = stake;
+        window.PokemoPoints.setBalance(balance - currentStake);
+        failedJump = null;
         position = 0;
         animation = null;
+        canvas.style.transform = 'translate3d(0, 0, 0)';
         gameState = 'playing';
         status.textContent = 'Die Runde läuft. Mit jedem sicheren Sprung steigt dein Multiplikator.';
         updateInterface();
@@ -371,15 +362,21 @@
         position = nextPosition;
         animation = null;
 
-        if (position === losingJump) {
+        if (Math.random() >= survivalChanceFor(position)) {
+            failedJump = position;
             gameState = 'lost';
-            status.textContent = `Sprung ${position} war die Falle. Dein Pokémon ist abgestürzt - Runde verloren.`;
+            status.textContent = `Bei Sprung ${position} bist du abgestürzt. Deine Überlebenschance lag bei ${Math.round(survivalChanceFor(position) * 100)} %. Dein Einsatz von ${currentStake} Pokémo-Punkten ist verloren.`;
+        } else if (position === circleCount) {
+            status.textContent = `Ziel erreicht! Dein Multiplikator steht bei x${formatMultiplier(position)}. Du kannst jetzt aussteigen.`;
         } else {
-            status.textContent = `Sicher gelandet! Dein Multiplikator steht jetzt bei x${multiplierFor(position)}.`;
+            status.textContent = `Sicher gelandet! Überlebenschance beim nächsten Sprung: ${Math.round(survivalChanceFor(position + 1) * 100)} %.`;
         }
 
         updateInterface();
         draw();
+        if (gameState === 'lost') {
+            stakeInput.focus();
+        }
     }
 
     function animateJump(nextPosition) {
@@ -415,9 +412,12 @@
         }
 
         gameState = 'cashed-out';
-        status.textContent = `Du steigst mit x${multiplierFor(position)} aus. Die Falle lag bei Sprung ${losingJump}.`;
+        const payout = Number((currentStake * multiplierFor(position)).toFixed(1));
+        window.PokemoPoints.setBalance(window.PokemoPoints.getBalance() + payout);
+        status.textContent = `Du steigst mit x${formatMultiplier(position)} aus und erhältst ${payout.toLocaleString('de-DE')} Pokémo-Punkte.`;
         updateInterface();
         draw();
+        stakeInput.focus();
     }
 
     startButton.addEventListener('click', () => {
@@ -429,6 +429,13 @@
     });
     crossButton.addEventListener('click', cross);
     exitButton.addEventListener('click', exitGame);
+    stakeInput.addEventListener('input', updateInterface);
+    window.addEventListener('pokemo-points-change', updateInterface);
+    window.addEventListener('pokemo-starter-change', () => {
+        if (gameState !== 'playing') {
+            loadPokemon();
+        }
+    });
     window.addEventListener('resize', resizeCanvas);
 
     updateInterface();

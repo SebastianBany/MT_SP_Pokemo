@@ -246,10 +246,11 @@
 }
 
 .canvas-container {
+  position: relative;
   box-sizing: border-box;
   width: 100%;
   height: clamp(340px, 49vh, 470px);
-  overflow: auto hidden;
+  overflow: hidden;
   border: 1px solid rgba(145, 177, 205, 0.18);
   border-radius: 1rem;
   background: #0a111b;
@@ -270,6 +271,112 @@
   flex-wrap: wrap;
   gap: 0.8rem;
   margin: 1.25rem auto 1rem;
+}
+
+.game-bet {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1.25rem auto 0;
+  color: #536247;
+  font-size: 0.9rem;
+}
+
+.game-bet-overlay[hidden] {
+  display: none;
+}
+
+.game-bet label {
+  font-weight: 700;
+}
+
+.game-bet input {
+  box-sizing: border-box;
+  width: 7rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #cbd9b9;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #354b2c;
+  font: inherit;
+}
+
+.game-bet input:focus-visible {
+  outline: 3px solid #8eb45b;
+  outline-offset: 2px;
+}
+
+.game-bet > span {
+  color: #718067;
+}
+
+.game-bet > span strong {
+  color: #45583a;
+}
+
+.game-bet-overlay {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: grid;
+  box-sizing: border-box;
+  place-items: center;
+  margin: 0;
+  padding: 1.25rem;
+  background: rgba(42, 49, 34, 0.38);
+  backdrop-filter: blur(2px);
+}
+
+.game-bet-card {
+  display: grid;
+  gap: 0.75rem;
+  box-sizing: border-box;
+  width: min(100%, 24rem);
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid #dce5ce;
+  border-radius: 0.9rem;
+  background: #fffef7;
+  box-shadow: 0 16px 48px rgba(48, 57, 37, 0.2);
+}
+
+.game-bet-kicker {
+  color: #7d9955;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.game-bet-card h3 {
+  margin: 0 0 0.35rem;
+  color: #3e5034;
+  font-size: 1.2rem;
+  line-height: 1.35;
+}
+
+.game-bet-card label {
+  color: #536247;
+}
+
+.game-bet-card input {
+  width: 100%;
+  font-size: 1.1rem;
+}
+
+.game-bet-balance {
+  margin: 0;
+  color: #718067;
+  font-size: 0.85rem;
+}
+
+.game-bet-balance strong {
+  color: #45583a;
+}
+
+.game-bet-card .pokecross-button {
+  width: 100%;
+  margin-top: 0.35rem;
 }
 
 .pokecross-button {
@@ -451,4 +558,183 @@
   .progress-track > span {
     transition: none;
   }
+}
+
+.page-pokecross {
+  background: #ffffff;
+  color: #35412e;
+  font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+}
+
+.page-pokecross::before {
+  display: none;
+}
+
+.game-eyebrow,
+.stat-label,
+.panel-kicker {
+  color: #70864f;
+}
+
+.eyebrow-mark,
+.live-dot {
+  background: #86ad4f;
+  box-shadow: none;
+}
+
+.game-eyebrow > span:not(.eyebrow-mark),
+.chip-divider {
+  color: #a4b38f;
+}
+
+.game-heading h1 {
+  color: #354b2c;
+  font-weight: 750;
+  letter-spacing: -0.045em;
+}
+
+.heading-accent,
+.multiplier-stat > strong {
+  color: #d54c46;
+  text-shadow: none;
+}
+
+.game-subtitle,
+.stat-card > small,
+.progress-stat > small {
+  color: #697660;
+}
+
+.round-chip,
+.state-chip {
+  border-color: #dce5d2;
+  background: #f7faef;
+  color: #596c47;
+}
+
+.game-stats {
+  gap: 0.8rem;
+}
+
+.stat-card {
+  min-height: 7.5rem;
+  border-color: #e2e8da;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(58, 76, 43, 0.06);
+}
+
+.stat-card > strong,
+.stat-row > strong {
+  color: #3e5034;
+  text-shadow: none;
+}
+
+.progress-track {
+  background: #e9efdf;
+}
+
+.progress-track > span {
+  background: #8db456;
+  box-shadow: none;
+}
+
+.game-panel {
+  padding: clamp(1rem, 2.5vw, 1.6rem);
+  border-color: #e1e8d8;
+  border-radius: 0.9rem;
+  background: #ffffff;
+  box-shadow: 0 3px 12px rgba(58, 76, 43, 0.07);
+}
+
+.panel-kicker {
+  color: #d24d46;
+}
+
+.game-panel-header h2 {
+  color: #3e5034;
+  font-weight: 700;
+}
+
+.state-chip[data-state="playing"] {
+  border-color: #c9ddb1;
+  color: #5e8139;
+}
+
+.state-chip[data-state="lost"],
+.state-chip[data-state="load-error"] {
+  border-color: #ecc8be;
+  color: #bd5144;
+}
+
+.state-chip[data-state="cashed-out"] {
+  border-color: #e8d6a5;
+  color: #8b7134;
+}
+
+.canvas-container {
+  border-color: #e5ddba;
+  border-radius: 0.65rem;
+  background: #f3edcf;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+#canvasPokecross {
+  min-width: 0;
+  will-change: transform;
+}
+
+.pokecross-button {
+  border-radius: 0.55rem;
+  color: #ffffff;
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.pokecross-button-start,
+.pokecross-button-cross {
+  background: #6f9d43;
+  box-shadow: none;
+}
+
+.pokecross-button-start:hover:not(:disabled),
+.pokecross-button-cross:hover:not(:disabled) {
+  background: #5e8937;
+  filter: none;
+}
+
+.pokecross-button-exit {
+  border-color: #e3c56f;
+  background: #f5e6ae;
+  color: #665225;
+}
+
+.pokecross-button-exit:hover:not(:disabled) {
+  background: #edda91;
+}
+
+.pokecross-button:focus-visible {
+  outline-color: #8eb45b;
+}
+
+.game-panel-footer {
+  border-color: #e8ede2;
+}
+
+.game-status {
+  color: #4b5c40;
+}
+
+.game-hint,
+.game-rules {
+  color: #718067;
+}
+
+.game-rules strong {
+  color: #45583a;
+}
+
+.rules-icon {
+  border-color: #cbd9b9;
+  color: #668846;
 }
