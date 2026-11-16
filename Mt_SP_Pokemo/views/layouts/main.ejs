@@ -15,6 +15,9 @@
 <body>
     <%- include('../partials/header') %>
     <%- body %>
+    <% if (typeof pageJs !== 'undefined') { %>
+    <script src="<%= pageJs %>" defer></script>
+    <% } %>
     <%- include('../partials/footer') %>
 </body>
 </html>

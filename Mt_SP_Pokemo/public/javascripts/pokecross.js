@@ -20,7 +20,7 @@
         throw new Error('Pokecross is missing required game elements.');
     }
 
-    if (!window.PokemoPoints || !window.PokemoProfile || !window.PokeAPI) {
+    if (!window.PokemoPoints || !window.PokemoProfile) {
         throw new Error('Pokecross requires the shared Pokémo profile and points services.');
     }
 
@@ -271,14 +271,12 @@
         gameStateLabel.dataset.state = gameState;
     }
 
-    function spriteUrlsFor(pokemon) {
-        const sprites = pokemon.sprites || {};
-        const artwork = sprites.other && sprites.other['official-artwork'];
+    function spriteUrlsFor(pokemonId) {
+        const spriteBaseUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
         return [
-            artwork && artwork.front_default,
-            sprites.front_default,
-            sprites.front_shiny
-        ].filter((url, index, urls) => url && urls.indexOf(url) === index);
+            `${spriteBaseUrl}/other/official-artwork/${pokemonId}.png`,
+            `${spriteBaseUrl}/${pokemonId}.png`
+        ];
     }
 
     function loadSprite(urls, index) {
@@ -296,12 +294,12 @@
         });
     }
 
-    function handlePokemonLoadError(error) {
-        console.error('Pokecross could not load its Pokémon.', error);
-        pokemonReady = false;
+    function handlePokemonSpriteError(error) {
+        console.warn('Pokecross could not load the Pokémon sprite; the game will continue without it.', error);
+        pokemonReady = true;
         pokemonImage = null;
-        gameState = 'load-error';
-        status.textContent = 'Das Pokémon konnte nicht geladen werden. Prüfe deine Verbindung und versuche es erneut.';
+        gameState = 'ready';
+        status.textContent = 'Das Pokémon-Bild konnte nicht geladen werden. Du kannst trotzdem spielen.';
         updateInterface();
         draw();
     }
@@ -313,15 +311,9 @@
         updateInterface();
         draw();
 
-        if (!window.PokeAPI || typeof window.PokeAPI.getPokemon !== 'function') {
-            handlePokemonLoadError(new Error('The shared PokeAPI client is not available.'));
-            return;
-        }
-
         const pokemonId = window.PokemoProfile.getStarterPokemonId();
-        window.PokeAPI.getPokemon(pokemonId)
-            .then((pokemon) => loadSprite(spriteUrlsFor(pokemon), 0).then((image) => ({ pokemon, image })))
-            .then(({ pokemon, image }) => {
+        loadSprite(spriteUrlsFor(pokemonId), 0)
+            .then((image) => {
                 pokemonImage = image;
                 pokemonReady = true;
                 gameState = 'ready';
@@ -329,7 +321,7 @@
                 updateInterface();
                 draw();
             })
-            .catch(handlePokemonLoadError);
+            .catch(handlePokemonSpriteError);
     }
 
     function startGame() {
