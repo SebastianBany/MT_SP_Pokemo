@@ -8,7 +8,9 @@
 		</div>
 		
 		<div class="profile-card">
-			<div class="profile-picture">...</div>
+			<button class="profile-picture" id="openPokemonPicker" type="button" aria-label="Pokémon auswählen" title="Pokémon auswählen">
+				<img id="profilePokemon" src="/images/pokeball.svg" alt="">
+			</button>
 			<div class="profile-info">
 				<input type="text" id="username" placeholder="Username" maxlength="20" oninput="saveUsername()">
 				
@@ -20,6 +22,24 @@
 				<p>0 XP</p>
 			</div>
 		</div>
+
+		<dialog class="pokemon-picker" id="pokemonPicker" aria-labelledby="pokemonPickerTitle">
+			<div class="pokemon-picker-header">
+				<h2 id="pokemonPickerTitle">Wähle ein Pokémon</h2>
+				<button class="btn-close" id="closePokemonPicker" type="button" aria-label="Schließen">&times;</button>
+			</div>
+			<label for="pokemonSearch">Pokémon suchen</label>
+			<input id="pokemonSearch" type="search" placeholder="Name eingeben" disabled>
+			<div class="pokemon-picker-content">
+				<select id="pokemonList" size="8" aria-label="Pokémon"></select>
+				<div class="pokemon-picker-preview">
+					<img id="pokemonPreview" src="/images/pokeball.svg" alt="">
+					<p id="pokemonPreviewName">Wähle ein Pokémon</p>
+				</div>
+			</div>
+			<p id="pokemonPickerStatus" role="status" aria-live="polite"></p>
+			<button class="pokemon-select-button" id="selectPokemon" type="button" disabled>Auswählen</button>
+		</dialog>
 		
 		<dialog class="drawer drawer-end" tabindex="-1" id="navbarNavAltMarkup" aria-labelledby="navbarNavAltMarkupLabel">
 			<div class="drawer-header">

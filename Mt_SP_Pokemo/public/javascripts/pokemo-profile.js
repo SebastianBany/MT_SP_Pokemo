@@ -1,6 +1,5 @@
 (function (global) {
-    const starterPokemonIds = Object.freeze([1, 4, 7]);
-    const defaultStarterPokemonId = starterPokemonIds[0];
+    const defaultStarterPokemonId = 1;
     const storageKey = 'pokemoStarterPokemonId';
 
     function getStarterPokemonId() {
@@ -10,12 +9,12 @@
         }
 
         const pokemonId = Number(savedId);
-        return starterPokemonIds.includes(pokemonId) ? pokemonId : defaultStarterPokemonId;
+        return Number.isInteger(pokemonId) && pokemonId > 0 ? pokemonId : defaultStarterPokemonId;
     }
 
     function setStarterPokemonId(pokemonId) {
-        if (!starterPokemonIds.includes(pokemonId)) {
-            throw new RangeError('Choose one of the configured starter Pokémon.');
+        if (!Number.isInteger(pokemonId) || pokemonId < 1) {
+            throw new RangeError('Choose a valid Pokémon.');
         }
 
         localStorage.setItem(storageKey, String(pokemonId));
@@ -25,7 +24,6 @@
     }
 
     global.PokemoProfile = Object.freeze({
-        starterPokemonIds,
         getStarterPokemonId,
         setStarterPokemonId
     });
