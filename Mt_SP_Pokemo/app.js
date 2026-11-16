@@ -18,11 +18,30 @@ server.set('layout', 'layouts/main');
 
 // Routes
 server.get('/', (request, response) => {
-  response.render('index', { title: 'Pokemo', text: 'Pokemo' });
+  response.render('index', { title: 'Pokemo', text: 'Willkommen bei Pokemo.' });
 });
 
-server.get('/anlegen', (request, response) => {
-  response.render('projectNew', { layout: 'layouts/special' });
+server.get('/glutox', (request, response) => {
+  response.render('glutox', {
+    title: 'Glutox',
+    pageCss: '/stylesheets/glutox.css',
+    pageJs: '/javascripts/glutox.js'
+  });
+});
+
+server.get('/pokecross', (request, response) => {
+  response.render('pokecross', {
+    title: 'Pokecross',
+    pageCss: '/stylesheets/pokecross.css',
+    pageJs: '/javascripts/pokecross.js'
+  });
+});
+
+server.get('/impressum', (request, response) => {
+  response.render('impressum', { title: 'Impressum' });
+});
+server.get('/datenschutz', (request, response) => {
+  response.render('datenschutz', { title: 'Datenschutz' });
 });
 
 module.exports = server;
