@@ -19,6 +19,11 @@
                 <canvas id="canvasPokecross" width="1280" height="460" role="img" aria-label="Spielfeld mit 22 Sprüngen, fünf sichtbaren Feldern, sinkender Überlebenschance und deinem Pokémon">
                     Dein Browser unterstützt das Canvas-Element nicht.
                 </canvas>
+                <div class="payout-animation" id="payoutAnimation" aria-hidden="true" hidden>
+                    <span class="payout-animation-label">GEWONNEN</span>
+                    <strong id="payoutAmount">+0</strong>
+                    <small>Pokémo-Punkte</small>
+                </div>
                 <div class="game-bet game-bet-overlay" id="gameBet" role="dialog" aria-modal="true" aria-labelledby="gameBetTitle">
                     <section class="game-bet-card">
                         <span class="game-bet-kicker">DEIN EINSATZ</span>
