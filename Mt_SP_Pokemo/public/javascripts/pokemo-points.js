@@ -1,9 +1,11 @@
 (function (global) {
     const storageKey = 'pokemoPoints';
-    const initialBalance = 100;
+    const initialBalance = 500;
+    const previousInitialBalance = 100;
     const balanceElement = document.getElementById('pokemonPoints');
+    const savedBalance = localStorage.getItem(storageKey);
 
-    if (localStorage.getItem(storageKey) === null) {
+    if (savedBalance === null || savedBalance === String(previousInitialBalance)) {
         localStorage.setItem(storageKey, String(initialBalance));
     }
 
