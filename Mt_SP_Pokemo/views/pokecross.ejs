@@ -1,6 +1,44 @@
 <main class="page page-pokecross" data-page="pokecross">
-  <section class="page-content">
-    <h1>Pokecross</h1>
-    <p>Hier beginnt der Inhalt der Pokecross-Unterseite.</p>
-  </section>
+    <section class="game-shell">
+        <header class="game-heading">
+            <div>
+                <h1>Pokecross<span class="heading-accent">.</span></h1>
+                <p class="game-subtitle">Springe mit deinem Pokémon über den Pfad.</p>
+            </div>
+        </header>
+
+        <section class="game-panel" aria-label="Pokecross-Spiel">
+            <header class="game-panel-header">
+                <div>
+                    <h2>Bereit für den nächsten Sprung?</h2>
+                </div>
+                <span class="state-chip" id="gameStateLabel" data-state="loading">POKÉMON LÄDT</span>
+            </header>
+
+            <div class="canvas-container">
+                <canvas id="canvasPokecross" width="1280" height="460" role="img" aria-label="Spielfeld mit 22 Sprüngen, fünf sichtbaren Feldern, sinkender Überlebenschance und deinem Pokémon">
+                    Dein Browser unterstützt das Canvas-Element nicht.
+                </canvas>
+                <div class="game-bet game-bet-overlay" id="gameBet" role="dialog" aria-modal="true" aria-labelledby="gameBetTitle">
+                    <section class="game-bet-card">
+                        <span class="game-bet-kicker">DEIN EINSATZ</span>
+                        <h3 id="gameBetTitle">Wie viele Pokémo-Punkte setzt du?</h3>
+                        <label for="stakeAmount">Einsatz</label>
+                        <input id="stakeAmount" type="number" min="1" step="1" value="10" inputmode="numeric" autofocus>
+                        <p class="game-bet-balance">Verfügbares Guthaben: <strong id="availablePoints">100</strong></p>
+                        <button class="pokecross-button pokecross-button-start" id="startGame" type="button" disabled>Pokémon wird geladen ...</button>
+                    </section>
+                </div>
+            </div>
+
+            <div class="pokecross-controls">
+                <button class="pokecross-button pokecross-button-cross" id="crossButton" type="button" hidden disabled>Cross springen</button>
+                <button class="pokecross-button pokecross-button-exit" id="exitButton" type="button" hidden disabled>Aussteigen (x1.0)</button>
+            </div>
+
+            <div class="game-panel-footer">
+                <p class="game-status" id="gameStatus" role="status" aria-live="polite">Dein Pokémon wird aus der PokéAPI geladen.</p>
+            </div>
+        </section>
+    </section>
 </main>
