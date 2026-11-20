@@ -122,10 +122,15 @@
     global.openPokemonPicker = openPokemonPicker;
     global.closePokemonPicker = closePokemonPicker;
 
+    function reset() {
+        setStarterPokemonId(defaultStarterPokemonId);
+    }
+
     global.PokemoProfile = Object.freeze({
         starterPokemonIds,
         getStarterPokemonId,
-        setStarterPokemonId
+        setStarterPokemonId,
+        reset
     });
 
     document.addEventListener('DOMContentLoaded', () => {
