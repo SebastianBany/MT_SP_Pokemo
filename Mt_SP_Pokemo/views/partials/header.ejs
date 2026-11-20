@@ -1,79 +1,79 @@
-<nav class="navbar sm:navbar-expand bg-1 fg-2" aria-label="Hauptnavigation">
+<nav class="navbar" aria-label="Hauptnavigation">
 	<div class="container-fluid">
 		<div class="brand-group">
 			<a class="navbar-brand" href="/">Pokemo</a>
-			<button class="btn-icon navbar-toggler" type="button" onclick="openMenu()" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Menü öffnen">
+			<button class="navbar-toggler" type="button" onclick="toggleMenu()" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Menü öffnen">
 				<img class="navbar-toggler-image" src="/images/pokeball.svg" alt="">
 			</button>
 		</div>
-		
+
 		<div class="profile-card">
-			<div class="profile-picture">...</div>
+			<button class="profile-picture pokemon-profile-button" type="button" aria-label="Pokemo auswählen" aria-haspopup="dialog" onclick="openPokemonPicker()">
+				<span class="profile-menu-dots" aria-hidden="true">&#8942;</span>
+				<img class="profile-pokemon-image" src="" alt="" hidden>
+			</button>
 			<div class="profile-info">
-				<input type="text" id="username" placeholder="Username" maxlength="20" oninput="saveUsername()">
-				
+				<input type="text" id="username" placeholder="Username" maxlength="20">
 				<p>Pokemo-Punkte: <span id="pokemonPoints">0</span></p>
 				<p>Level 1</p>
 				<div class="xp-bar">
 					<div class="xp-progress"></div>
 				</div>
-				<p>0 XP</p>
+				<p class="xp-label">0 XP</p>
 			</div>
 		</div>
+
+		<dialog class="pokemon-picker" id="pokemonPicker" aria-labelledby="pokemonPickerTitle">
+			<div class="pokemon-picker-header">
+				<h2 id="pokemonPickerTitle">Wähle ein Pokemo</h2>
+				<button class="pokemon-picker-close" type="button" onclick="closePokemonPicker()" aria-label="Fenster schließen">&times;</button>
+			</div>
+			<div class="starter-pokemon-list" id="starterPokemonList" aria-label="Starter-Pokemos"></div>
+			<p class="pokemon-count" id="pokemonCount">Pokemos werden geladen...</p>
+		</dialog>
 		
 		<dialog class="drawer drawer-end" tabindex="-1" id="navbarNavAltMarkup" aria-labelledby="navbarNavAltMarkupLabel">
 			<div class="drawer-header">
 				<h2 class="drawer-title" id="navbarNavAltMarkupLabel">Menü</h2>
-				<button class="btn-close" type="button" onclick="closeMenu()" aria-label="Menü schließen">&times;</button>
+				<button class="menu-close" type="button" onclick="closeMenu()" aria-label="Menü schließen">&times;</button>
 			</div>
 			<div class="drawer-body">
 				<div class="nav nav-pills navbar-nav">
-					<a class="nav-link<%= title === 'Pokemo' ? ' active' : '' %>"<% if (title === 'Pokemo') { %> aria-current="page"<% } %> href="/">Home</a>
-					<a class="nav-link<%= title === 'Glutox' ? ' active' : '' %>"<% if (title === 'Glutox') { %> aria-current="page"<% } %> href="/glutox">Glutox</a>
-					<a class="nav-link<%= title === 'Pokecross' ? ' active' : '' %>"<% if (title === 'Pokecross') { %> aria-current="page"<% } %> href="/pokecross">Pokecross</a>
+					<a class="nav-link<%= title === 'Pokemo' ? ' active' : '' %>" <%= title === 'Pokemo' ? 'aria-current="page"' : '' %> href="/">Home</a>
+					<a class="nav-link<%= title === 'Glutox' ? ' active' : '' %>" <%= title === 'Glutox' ? 'aria-current="page"' : '' %> href="/glutox">Glutox</a>
+					<a class="nav-link<%= title === 'Pokecross' ? ' active' : '' %>" <%= title === 'Pokecross' ? 'aria-current="page"' : '' %> href="/pokecross">Pokecross</a>
 				</div>
 			</div>
 		</dialog>
 	</div>
 </nav>
 <script>
-	
-	function saveUsername() {
-		var username = document.getElementById('username').value;
-		localStorage.setItem('username', username);
-	}
+	var usernameInput = document.getElementById('username');
+	var menu = document.getElementById('navbarNavAltMarkup');
+	var menuButton = document.querySelector('.navbar-toggler');
 
-	var savedUsername = localStorage.getItem('username');
-	if (savedUsername) {
-		document.getElementById('username').value = savedUsername;
-	}
+	usernameInput.value = localStorage.getItem('username') || '';
 
-	
-	function openMenu() {
-		var drawer = document.getElementById('navbarNavAltMarkup');
-		var menuButton = document.querySelector('.navbar-toggler');
-
-		drawer.show();
-		menuButton.setAttribute('aria-expanded', 'true');
-	}
-
-	
-	function closeMenu() {
-		var drawer = document.getElementById('navbarNavAltMarkup');
-		drawer.close();
-	}
-
-	
-	document.getElementById('navbarNavAltMarkup').addEventListener('close', function () {
-		var menuButton = document.querySelector('.navbar-toggler');
-		menuButton.setAttribute('aria-expanded', 'false');
+	usernameInput.addEventListener('input', function () {
+		localStorage.setItem('username', usernameInput.value);
 	});
 
-	document.addEventListener('click', function (event) {
-		var drawer = document.getElementById('navbarNavAltMarkup');
-		var menuButton = document.querySelector('.navbar-toggler');
+	function toggleMenu() {
+		if (menu.open) {
+			closeMenu();
+		} else {
+			menu.show();
+			menuButton.setAttribute('aria-expanded', 'true');
+		}
+	}
 
-		if (drawer.open && !drawer.contains(event.target) && !menuButton.contains(event.target)) {
+	function closeMenu() {
+		menu.close();
+		menuButton.setAttribute('aria-expanded', 'false');
+	}
+
+	document.addEventListener('click', function (event) {
+		if (menu.open && !menu.contains(event.target) && !menuButton.contains(event.target)) {
 			closeMenu();
 		}
 	});
