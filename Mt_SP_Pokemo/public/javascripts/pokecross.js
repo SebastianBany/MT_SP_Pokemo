@@ -4,8 +4,7 @@
     const firstJumpSurvivalChance = 0.95;
     const lastJumpSurvivalChance = 0.2;
     const animationDuration = 380;
-    const fallAnimationDuration = 650;
-    const payoutAnimationDuration = 850;
+    const spriteLoadTimeout = 5000;
     const canvas = document.getElementById('canvasPokecross');
     const canvasContainer = canvas && canvas.parentElement;
     const startButton = document.getElementById('startGame');
@@ -25,8 +24,12 @@
         throw new Error('Pokecross is missing required game elements.');
     }
 
-    if (!window.PokemoPoints || !window.PokemoProfile) {
-        throw new Error('Pokecross requires the shared Pokémo profile and points services.');
+    if (!window.PokemoPoints || !window.PokemoProfile || !window.PokeAPI) {
+        throw new Error('Pokecross requires the shared profile, points, and PokéAPI services.');
+    }
+
+    if (!window.PokemoAnimations) {
+        throw new Error('Pokecross requires the shared game animation service.');
     }
 
     const context = canvas.getContext('2d');
@@ -43,6 +46,7 @@
     let pokemonReady = false;
     let currentStake = 0;
 
+    // Used for field labels and payouts to calculate the reward multiplier.
     function multiplierFor(jump) {
         if (jump <= 0) {
             return 1;
@@ -51,21 +55,26 @@
         return Math.pow(circleCount, (jump - 1) / (circleCount - 1));
     }
 
+    // Called after each jump; squaring progress makes the early jumps easier.
     function survivalChanceFor(jump) {
         const progress = (jump - 1) / (circleCount - 1);
+        const easedProgress = progress * progress;
         return firstJumpSurvivalChance
-            * Math.pow(lastJumpSurvivalChance / firstJumpSurvivalChance, progress);
+            * Math.pow(lastJumpSurvivalChance / firstJumpSurvivalChance, easedProgress);
     }
 
+    // Formats multipliers for the canvas and game controls.
     function formatMultiplier(jump) {
         return Number(multiplierFor(jump).toFixed(2)).toString();
     }
 
+    // Reads and validates the stake entered before a round.
     function stakeForRound() {
         const stake = stakeInput.valueAsNumber;
         return Number.isSafeInteger(stake) && stake > 0 ? stake : null;
     }
 
+    // Calculates canvas dimensions and spacing for the current viewport.
     function getLayout() {
         const viewportWidth = canvasContainer.clientWidth;
         const height = canvasContainer.clientHeight;
@@ -87,15 +96,18 @@
         };
     }
 
+    // Maps a jump number to its horizontal canvas position.
     function xForPosition(jump, layout) {
         return layout.margin + jump * layout.spacing;
     }
 
+    // Draws the canvas background before the track and Pokémon.
     function drawBackground(layout) {
         context.fillStyle = '#f3edcf';
         context.fillRect(0, 0, layout.width, layout.height);
     }
 
+    // Draws the start-to-finish path behind the jump circles.
     function drawTrack(layout) {
         context.save();
         context.beginPath();
@@ -120,6 +132,7 @@
         context.restore();
     }
 
+    // Draws each multiplier circle and reveals passed or failed jumps.
     function drawCircles(layout) {
         const revealFailedCircle = gameState !== 'playing' && failedJump !== null;
 
@@ -172,6 +185,7 @@
         }
     }
 
+    // Draws the Pokémon sprite and its jump or fall position.
     function drawPokemon(x, layout, jumpHeight, fallProgress) {
         const groundY = layout.centerY - layout.radius - 3;
         const spriteHeight = Math.min(132, layout.height * 0.34);
@@ -218,9 +232,9 @@
         context.restore();
     }
 
-    function draw(now) {
+    // Redraws the complete game scene for the current animation frame.
+    function draw() {
         const layout = getLayout();
-        const currentTime = now === undefined ? performance.now() : now;
         context.clearRect(0, 0, layout.width, layout.height);
         drawBackground(layout);
         drawTrack(layout);
@@ -230,20 +244,21 @@
         let jumpHeight = 0;
         let fallProgress = 0;
         if (animation) {
-            const progress = Math.min(1, (currentTime - animation.startedAt) / animationDuration);
+            const progress = animation.progress;
             const easedProgress = progress * progress * (3 - 2 * progress);
             playerX = xForPosition(animation.from, layout)
                 + (xForPosition(animation.to, layout) - xForPosition(animation.from, layout)) * easedProgress;
             jumpHeight = Math.sin(progress * Math.PI) * Math.min(78, layout.height * 0.22);
         }
         if (fallAnimation) {
-            fallProgress = Math.min(1, (currentTime - fallAnimation.startedAt) / fallAnimationDuration);
+            fallProgress = fallAnimation.progress;
         }
         const cameraOffset = Math.max(0, playerX - layout.viewportWidth / 2);
         canvas.style.transform = `translate3d(${-cameraOffset}px, 0, 0)`;
         drawPokemon(playerX, layout, jumpHeight, fallProgress);
     }
 
+    // Resizes the canvas for the viewport and device pixel ratio.
     function resizeCanvas() {
         const layout = getLayout();
         const pixelRatio = window.devicePixelRatio || 1;
@@ -254,6 +269,7 @@
         draw();
     }
 
+    // Updates buttons, balance, status text, and the round indicator.
     function updateInterface() {
         const isPlaying = gameState === 'playing';
         const isRoundActive = isPlaying || gameState === 'losing' || gameState === 'cashing-out';
@@ -291,14 +307,17 @@
         gameStateLabel.dataset.state = gameState;
     }
 
-    function spriteUrlsFor(pokemonId) {
-        const spriteBaseUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
+    // Gets available sprite URLs from the PokéAPI response.
+    function spriteUrlsFor(pokemon) {
+        const sprites = pokemon && pokemon.sprites;
+        const artwork = sprites && sprites.other && sprites.other['official-artwork'];
         return [
-            `${spriteBaseUrl}/other/official-artwork/${pokemonId}.png`,
-            `${spriteBaseUrl}/${pokemonId}.png`
-        ];
+            artwork && artwork.front_default,
+            sprites && sprites.front_default
+        ].filter(Boolean);
     }
 
+    // Tries the sprite URLs in order and rejects if none can be loaded.
     function loadSprite(urls, index) {
         if (index >= urls.length) {
             return Promise.reject(new Error('No usable Pokémon sprite was returned by PokéAPI.'));
@@ -306,24 +325,36 @@
 
         return new Promise((resolve, reject) => {
             const image = new Image();
-            image.onload = () => resolve(image);
-            image.onerror = () => {
+            let timeout;
+            const tryNextSprite = () => {
+                window.clearTimeout(timeout);
+                image.onload = null;
+                image.onerror = null;
                 loadSprite(urls, index + 1).then(resolve, reject);
             };
+
+            image.onload = () => {
+                window.clearTimeout(timeout);
+                resolve(image);
+            };
+            image.onerror = tryNextSprite;
+            timeout = window.setTimeout(tryNextSprite, spriteLoadTimeout);
             image.src = urls[index];
         });
     }
 
+    // Lets the round continue with a placeholder if sprite loading fails.
     function handlePokemonSpriteError(error) {
         console.warn('Pokecross could not load the Pokémon sprite; the game will continue without it.', error);
         pokemonReady = true;
         pokemonImage = null;
         gameState = 'ready';
-        status.textContent = 'Das Pokémon-Bild konnte nicht geladen werden. Du kannst trotzdem spielen.';
+        status.textContent = 'Pokémon konnte nicht von der PokéAPI geladen werden. Du kannst trotzdem spielen.';
         updateInterface();
         draw();
     }
 
+    // Loads the selected starter when the game opens or the profile changes.
     function loadPokemon() {
         gameState = 'loading';
         pokemonReady = false;
@@ -332,7 +363,8 @@
         draw();
 
         const pokemonId = window.PokemoProfile.getStarterPokemonId();
-        loadSprite(spriteUrlsFor(pokemonId), 0)
+        window.PokeAPI.getPokemon(pokemonId)
+            .then((pokemon) => loadSprite(spriteUrlsFor(pokemon), 0))
             .then((image) => {
                 pokemonImage = image;
                 pokemonReady = true;
@@ -344,6 +376,7 @@
             .catch(handlePokemonSpriteError);
     }
 
+    // Validates the stake, deducts it, and starts a fresh round.
     function startGame() {
         if (!pokemonReady) {
             return;
@@ -370,6 +403,7 @@
         draw();
     }
 
+    // Resolves a completed jump and starts the loss animation when needed.
     function finishJump(nextPosition) {
         position = nextPosition;
         animation = null;
@@ -380,7 +414,9 @@
             status.textContent = `Bei Sprung ${position} bist du abgestürzt. Deine Überlebenschance lag bei ${Math.round(survivalChanceFor(position) * 100)} %. Dein Einsatz von ${currentStake} Pokémo-Punkten ist verloren.`;
             animateFall();
             return;
-        } else if (position === circleCount) {
+        }
+
+        if (position === circleCount) {
             status.textContent = `Ziel erreicht! Dein Multiplikator steht bei x${formatMultiplier(position)}. Du kannst jetzt aussteigen.`;
         } else {
             status.textContent = `Sicher gelandet! Überlebenschance beim nächsten Sprung: ${Math.round(survivalChanceFor(position + 1) * 100)} %.`;
@@ -390,49 +426,43 @@
         draw();
     }
 
+    // Animates the Pokémon falling after an unsafe jump.
     function animateFall() {
         fallAnimation = {
-            startedAt: performance.now()
+            progress: 0
         };
         updateInterface();
 
-        function frame(now) {
-            draw(now);
-            if (now - fallAnimation.startedAt < fallAnimationDuration) {
-                requestAnimationFrame(frame);
-                return;
-            }
-
+        window.PokemoAnimations.animateFall((progress) => {
+            fallAnimation.progress = progress;
+            draw();
+        }, () => {
             fallAnimation = null;
             gameState = 'lost';
             updateInterface();
             draw();
             stakeInput.focus();
-        }
-
-        requestAnimationFrame(frame);
+        });
     }
 
+    // Animates one jump, then passes its result to finishJump().
     function animateJump(nextPosition) {
         animation = {
             from: position,
             to: nextPosition,
-            startedAt: performance.now()
+            progress: 0
         };
         updateInterface();
 
-        function frame(now) {
-            draw(now);
-            if (now - animation.startedAt < animationDuration) {
-                requestAnimationFrame(frame);
-                return;
-            }
+        window.PokemoAnimations.animateProgress(animationDuration, (progress) => {
+            animation.progress = progress;
+            draw();
+        }, () => {
             finishJump(nextPosition);
-        }
-
-        requestAnimationFrame(frame);
+        });
     }
 
+    // Handles the Cross button and starts the next jump.
     function cross() {
         if (gameState !== 'playing' || animation || position >= circleCount) {
             return;
@@ -440,6 +470,7 @@
         animateJump(position + 1);
     }
 
+    // Pays out the current multiplier when the player exits early.
     function exitGame() {
         if (gameState !== 'playing' || animation) {
             return;
@@ -457,29 +488,16 @@
         animatePayout(payout, multiplier);
     }
 
+    // Counts up the payout display and finishes the cash-out state.
     function animatePayout(payout, multiplier) {
-        const startedAt = performance.now();
-
-        function frame(now) {
-            const progress = Math.min(1, (now - startedAt) / payoutAnimationDuration);
-            const easedProgress = 1 - Math.pow(1 - progress, 3);
-            const animatedPayout = Math.round(payout * easedProgress * 10) / 10;
-            payoutAmount.textContent = `+${animatedPayout.toLocaleString('de-DE', { maximumFractionDigits: 1 })}`;
-
-            if (progress < 1) {
-                requestAnimationFrame(frame);
-                return;
-            }
-
+        window.PokemoAnimations.animatePayout(payoutAmount, payout, () => {
             gameState = 'cashed-out';
             status.setAttribute('aria-live', 'polite');
             status.textContent = `Du steigst mit x${multiplier} aus und erhältst ${payout.toLocaleString('de-DE')} Pokémo-Punkte.`;
             updateInterface();
             draw();
             stakeInput.focus();
-        }
-
-        requestAnimationFrame(frame);
+        });
     }
 
     startButton.addEventListener('click', () => {

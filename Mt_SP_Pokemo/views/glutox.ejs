@@ -1,8 +1,60 @@
 <main class="page page-glutox" data-page="glutox">
-    <section class="page-content">
-        <h1>Glutox</h1>
-        <div class="canvas-container">
-            <canvas id="CanvasGlutox" width="400" height="300"></canvas>
-        </div>
+    <section class="glutox-shell">
+        <header class="glutox-heading">
+            <div>
+                <h1>Glutox<span class="heading-accent">.</span></h1>
+                <p class="game-subtitle">Wähle in jeder Reihe ein Feld und springe mit deinem Pokémon nach oben.</p>
+            </div>
+        </header>
+
+        <section class="game-panel" aria-label="Glutox-Spiel">
+            <header class="game-panel-header">
+                <div>
+                    <h2>Welcher Weg führt nach oben?</h2>
+                </div>
+                <span class="state-chip" id="glutoxStateLabel" data-state="loading">POKÉMON LÄDT</span>
+            </header>
+
+            <div class="glutox-board-wrap">
+                <div class="glutox-board" id="glutoxBoard" aria-label="Spielfeld mit drei Spalten und acht Reihen">
+                    <% for (let row = 7; row >= 0; row -= 1) { %>
+                    <div class="glutox-row" data-row="<%= row %>" aria-label="Reihe <%= row + 1 %>">
+                        <% for (let column = 0; column < 3; column += 1) { %>
+                        <button class="glutox-tile" type="button" data-row="<%= row %>" data-column="<%= column %>" aria-label="Reihe <%= row + 1 %>, Feld <%= column + 1 %>" disabled></button>
+                        <% } %>
+                    </div>
+                    <% } %>
+                    <div class="glutox-start-line"><span>START</span></div>
+                    <img class="glutox-pokemon" id="glutoxPokemon" alt="Dein Pokémon" hidden>
+                    <div class="payout-animation" id="glutoxPayout" aria-hidden="true" hidden>
+                        <span class="payout-animation-label">GEWONNEN</span>
+                        <strong id="glutoxPayoutAmount">+0</strong>
+                        <small>Pokémo-Punkte</small>
+                    </div>
+                    <div class="glutox-bet-overlay" id="glutoxBet" role="dialog" aria-modal="true" aria-labelledby="glutoxBetTitle">
+                        <section class="glutox-bet-card">
+                            <span class="glutox-bet-kicker">DEIN EINSATZ</span>
+                            <h3 id="glutoxBetTitle">Wie viele Pokémo-Punkte setzt du?</h3>
+                            <label for="glutoxStake">Einsatz</label>
+                            <input id="glutoxStake" type="number" min="1" step="1" value="10" inputmode="numeric">
+                            <p class="glutox-balance">Verfügbares Guthaben: <strong id="glutoxAvailablePoints">500</strong></p>
+                            <button class="glutox-button glutox-button-start" id="glutoxStart" type="button" disabled>Pokémon wird geladen ...</button>
+                        </section>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glutox-controls">
+                <div class="glutox-current">
+                    <span>Multiplikator</span>
+                    <strong id="glutoxMultiplier">x1</strong>
+                </div>
+                <button class="glutox-button glutox-button-exit" id="glutoxExit" type="button" hidden disabled>Auszahlen (x1)</button>
+            </div>
+
+            <div class="game-panel-footer">
+                <p class="game-status" id="glutoxStatus" role="status" aria-live="polite">Dein Pokémon wird aus der PokéAPI geladen.</p>
+            </div>
+        </section>
     </section>
 </main>

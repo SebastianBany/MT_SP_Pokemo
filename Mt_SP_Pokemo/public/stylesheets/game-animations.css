@@ -1,0 +1,53 @@
+.payout-animation[hidden] {
+  display: none;
+}
+
+.payout-animation {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background: radial-gradient(ellipse at center, rgba(42, 33, 12, 0.55), rgba(7, 12, 19, 0.78));
+  pointer-events: none;
+  animation: payout-appear 420ms ease-out both;
+}
+
+.payout-animation-label {
+  color: #f8df93;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.payout-animation strong {
+  color: #ffdf72;
+  font-size: clamp(3rem, 10vw, 6rem);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-shadow: 0 0 32px rgba(255, 199, 67, 0.45);
+}
+
+.payout-animation small {
+  color: #e4e8cf;
+  font-size: 0.85rem;
+}
+
+@keyframes payout-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

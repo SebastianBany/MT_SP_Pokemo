@@ -18,14 +18,21 @@
 
         const url = `${apiUrl}/${path.join('/')}/`;
         if (!cache.has(url)) {
-            const request = fetch(url)
+            const controller = new AbortController();
+            const timeout = global.setTimeout(() => controller.abort(), 8000);
+            const request = fetch(url, { signal: controller.signal })
                 .then((response) => {
                     if (!response.ok) {
                         throw new Error(`PokéAPI request failed with status ${response.status}.`);
                     }
                     return response.json();
                 })
+                .then((data) => {
+                    global.clearTimeout(timeout);
+                    return data;
+                })
                 .catch((error) => {
+                    global.clearTimeout(timeout);
                     cache.delete(url);
                     throw error;
                 });
