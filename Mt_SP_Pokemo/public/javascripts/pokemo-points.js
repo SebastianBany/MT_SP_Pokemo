@@ -11,14 +11,18 @@
 
     function getBalance() {
         const balance = Number(localStorage.getItem(storageKey));
-        if (!Number.isFinite(balance) || balance < 0 || !Number.isSafeInteger(balance * 10)) {
-            throw new Error('The saved Pokémo points balance is invalid.');
+        const roundedBalance = Math.ceil(balance);
+        if (!Number.isFinite(balance) || balance < 0 || !Number.isSafeInteger(roundedBalance)) {
+            throw new Error('The saved Pokemo points balance is invalid.');
         }
-        return balance;
+        if (roundedBalance !== balance) {
+            localStorage.setItem(storageKey, String(roundedBalance));
+        }
+        return roundedBalance;
     }
 
     function formatBalance(balance) {
-        return balance.toLocaleString('de-DE', { maximumFractionDigits: 1 });
+        return balance.toLocaleString('de-DE');
     }
 
     function renderBalance() {
@@ -29,12 +33,12 @@
 
     function setBalance(balance) {
         if (typeof balance !== 'number' || !Number.isFinite(balance) || balance < 0) {
-            throw new TypeError('The Pokémo points balance must be a non-negative number.');
+            throw new TypeError('The Pokemo points balance must be a non-negative number.');
         }
 
-        const normalizedBalance = Math.round(balance * 10) / 10;
-        if (!Number.isSafeInteger(normalizedBalance * 10)) {
-            throw new RangeError('The Pokémo points balance is too large.');
+        const normalizedBalance = Math.ceil(balance);
+        if (!Number.isSafeInteger(normalizedBalance)) {
+            throw new RangeError('The Pokemo points balance is too large.');
         }
 
         localStorage.setItem(storageKey, String(normalizedBalance));
@@ -44,9 +48,14 @@
         }));
     }
 
+    function reset() {
+        setBalance(initialBalance);
+    }
+
     global.PokemoPoints = Object.freeze({
         getBalance,
-        setBalance
+        setBalance,
+        reset
     });
 
     global.addEventListener('storage', (event) => {

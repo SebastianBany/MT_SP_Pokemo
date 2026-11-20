@@ -12,21 +12,24 @@
     const crossButton = document.getElementById('crossButton');
     const exitButton = document.getElementById('exitButton');
     const stakeInput = document.getElementById('stakeAmount');
+    const allInButton = document.getElementById('allInButton');
     const betPanel = document.getElementById('gameBet');
     const availablePoints = document.getElementById('availablePoints');
     const status = document.getElementById('gameStatus');
     const gameStateLabel = document.getElementById('gameStateLabel');
     const payoutAnimation = document.getElementById('payoutAnimation');
     const payoutAmount = document.getElementById('payoutAmount');
+    const gameOverOverlay = document.getElementById('gameOverOverlay');
+    const restartButton = document.getElementById('restartGame');
 
     if (!canvas || !canvasContainer || !startButton || !crossButton || !exitButton
-        || !stakeInput || !betPanel || !availablePoints || !status || !gameStateLabel
-        || !payoutAnimation || !payoutAmount) {
+        || !stakeInput || !allInButton || !betPanel || !availablePoints || !status || !gameStateLabel
+        || !payoutAnimation || !payoutAmount || !gameOverOverlay || !restartButton) {
         throw new Error('Pokecross is missing required game elements.');
     }
 
     if (!window.PokemoPoints || !window.PokemoProfile) {
-        throw new Error('Pokecross requires the shared Pokémo profile and points services.');
+        throw new Error('Pokecross requires the shared Pokemo profile and points services.');
     }
 
     const context = canvas.getContext('2d');
@@ -256,17 +259,19 @@
 
     function updateInterface() {
         const isPlaying = gameState === 'playing';
-        const isRoundActive = isPlaying || gameState === 'losing' || gameState === 'cashing-out';
+        const isRoundActive = isPlaying || gameState === 'losing' || gameState === 'cashing-out'
+            || gameState === 'game-over';
         const balance = window.PokemoPoints.getBalance();
         const stake = stakeForRound();
         const labels = {
-            loading: 'POKÉMON LÄDT',
+            loading: 'POKEMON LÄDT',
             ready: 'BEREIT',
             playing: 'RUN LÄUFT',
             losing: 'ABSTURZ',
             'cashing-out': 'GEWINN',
             lost: 'RUN BEENDET',
             'cashed-out': 'AUSGESTIEGEN',
+            'game-over': 'GAME OVER',
             'load-error': 'OFFLINE'
         };
 
@@ -277,13 +282,15 @@
         payoutAnimation.hidden = gameState !== 'cashing-out';
         availablePoints.textContent = balance.toLocaleString('de-DE');
         stakeInput.max = String(Math.floor(balance));
+        allInButton.disabled = Math.floor(balance) < 1;
         startButton.disabled = gameState === 'loading'
             || (gameState !== 'load-error' && (!pokemonReady || stake === null || stake > balance));
         startButton.textContent = gameState === 'loading'
-            ? 'Pokémon wird geladen ...'
+            ? 'Pokemon wird geladen ...'
             : gameState === 'load-error'
-                ? 'Pokémon erneut laden'
+                ? 'Pokemon erneut laden'
                 : gameState === 'ready' ? 'Runde starten' : 'Neue Runde';
+        gameOverOverlay.hidden = gameState !== 'game-over';
         crossButton.disabled = Boolean(animation) || position >= circleCount;
         exitButton.disabled = Boolean(animation);
         exitButton.textContent = `Aussteigen (x${formatMultiplier(position)})`;
@@ -301,7 +308,7 @@
 
     function loadSprite(urls, index) {
         if (index >= urls.length) {
-            return Promise.reject(new Error('No usable Pokémon sprite was returned by PokéAPI.'));
+            return Promise.reject(new Error('No usable Pokemon sprite was returned by PokeAPI.'));
         }
 
         return new Promise((resolve, reject) => {
@@ -315,11 +322,15 @@
     }
 
     function handlePokemonSpriteError(error) {
-        console.warn('Pokecross could not load the Pokémon sprite; the game will continue without it.', error);
+        console.warn('Pokecross could not load the Pokemon sprite; the game will continue without it.', error);
         pokemonReady = true;
         pokemonImage = null;
+        if (window.PokemoPoints.getBalance() === 0) {
+            enterGameOver();
+            return;
+        }
         gameState = 'ready';
-        status.textContent = 'Das Pokémon-Bild konnte nicht geladen werden. Du kannst trotzdem spielen.';
+        status.textContent = 'Das Pokemon-Bild konnte nicht geladen werden. Du kannst trotzdem spielen.';
         updateInterface();
         draw();
     }
@@ -327,7 +338,7 @@
     function loadPokemon() {
         gameState = 'loading';
         pokemonReady = false;
-        status.textContent = 'Ein Pokémon wird aus der PokéAPI geladen ...';
+        status.textContent = 'Ein Pokemon wird aus der PokeAPI geladen ...';
         updateInterface();
         draw();
 
@@ -336,8 +347,12 @@
             .then((image) => {
                 pokemonImage = image;
                 pokemonReady = true;
+                if (window.PokemoPoints.getBalance() === 0) {
+                    enterGameOver();
+                    return;
+                }
                 gameState = 'ready';
-                status.textContent = 'Dein Pokémon ist bereit. Wie weit traust du dich?';
+                status.textContent = 'Dein Pokemon ist bereit. Wie weit traust du dich?';
                 updateInterface();
                 draw();
             })
@@ -377,7 +392,7 @@
         if (Math.random() >= survivalChanceFor(position)) {
             failedJump = position;
             gameState = 'losing';
-            status.textContent = `Bei Sprung ${position} bist du abgestürzt. Deine Überlebenschance lag bei ${Math.round(survivalChanceFor(position) * 100)} %. Dein Einsatz von ${currentStake} Pokémo-Punkten ist verloren.`;
+            status.textContent = `Bei Sprung ${position} bist du abgestürzt. Deine Überlebenschance lag bei ${Math.round(survivalChanceFor(position) * 100)} %. Dein Einsatz von ${currentStake} Pokemo-Punkten ist verloren.`;
             animateFall();
             return;
         } else if (position === circleCount) {
@@ -405,6 +420,10 @@
 
             fallAnimation = null;
             gameState = 'lost';
+            if (window.PokemoPoints.getBalance() === 0) {
+                enterGameOver();
+                return;
+            }
             updateInterface();
             draw();
             stakeInput.focus();
@@ -473,13 +492,48 @@
 
             gameState = 'cashed-out';
             status.setAttribute('aria-live', 'polite');
-            status.textContent = `Du steigst mit x${multiplier} aus und erhältst ${payout.toLocaleString('de-DE')} Pokémo-Punkte.`;
+            status.textContent = `Du steigst mit x${multiplier} aus und erhältst ${payout.toLocaleString('de-DE')} Pokemo-Punkte.`;
             updateInterface();
             draw();
             stakeInput.focus();
         }
 
         requestAnimationFrame(frame);
+    }
+
+    function enterGameOver() {
+        gameState = 'game-over';
+        position = 0;
+        failedJump = null;
+        animation = null;
+        fallAnimation = null;
+        currentStake = 0;
+        stakeInput.value = '10';
+        canvas.style.transform = 'translate3d(0, 0, 0)';
+        window.PokemoPoints.reset();
+        window.PokemoProfile.reset();
+        status.textContent = 'Game Over. Dein Spielstand wurde zurückgesetzt.';
+        updateInterface();
+        draw();
+        restartButton.focus();
+    }
+
+    function restartGame() {
+        if (gameState !== 'game-over') {
+            return;
+        }
+
+        loadPokemon();
+    }
+
+    function selectAllIn() {
+        const maximumStake = Math.floor(window.PokemoPoints.getBalance());
+        if (maximumStake < 1) {
+            return;
+        }
+
+        stakeInput.value = String(maximumStake);
+        updateInterface();
     }
 
     startButton.addEventListener('click', () => {
@@ -491,10 +545,12 @@
     });
     crossButton.addEventListener('click', cross);
     exitButton.addEventListener('click', exitGame);
+    allInButton.addEventListener('click', selectAllIn);
+    restartButton.addEventListener('click', restartGame);
     stakeInput.addEventListener('input', updateInterface);
     window.addEventListener('pokemo-points-change', updateInterface);
     window.addEventListener('pokemo-starter-change', () => {
-        if (gameState !== 'playing') {
+        if (gameState !== 'playing' && gameState !== 'game-over') {
             loadPokemon();
         }
     });
