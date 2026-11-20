@@ -4,6 +4,8 @@
     const firstJumpSurvivalChance = 0.95;
     const lastJumpSurvivalChance = 0.2;
     const animationDuration = 380;
+    const fallAnimationDuration = 650;
+    const payoutAnimationDuration = 850;
     const canvas = document.getElementById('canvasPokecross');
     const canvasContainer = canvas && canvas.parentElement;
     const startButton = document.getElementById('startGame');
@@ -14,9 +16,12 @@
     const availablePoints = document.getElementById('availablePoints');
     const status = document.getElementById('gameStatus');
     const gameStateLabel = document.getElementById('gameStateLabel');
+    const payoutAnimation = document.getElementById('payoutAnimation');
+    const payoutAmount = document.getElementById('payoutAmount');
 
     if (!canvas || !canvasContainer || !startButton || !crossButton || !exitButton
-        || !stakeInput || !betPanel || !availablePoints || !status || !gameStateLabel) {
+        || !stakeInput || !betPanel || !availablePoints || !status || !gameStateLabel
+        || !payoutAnimation || !payoutAmount) {
         throw new Error('Pokecross is missing required game elements.');
     }
 
@@ -33,6 +38,7 @@
     let failedJump = null;
     let position = 0;
     let animation = null;
+    let fallAnimation = null;
     let pokemonImage = null;
     let pokemonReady = false;
     let currentStake = 0;
@@ -166,22 +172,25 @@
         }
     }
 
-    function drawPokemon(x, layout, jumpHeight) {
+    function drawPokemon(x, layout, jumpHeight, fallProgress) {
         const groundY = layout.centerY - layout.radius - 3;
         const spriteHeight = Math.min(132, layout.height * 0.34);
+        const fallOffset = fallProgress * Math.min(150, layout.height * 0.34);
+        const pokemonX = x + fallProgress * layout.radius * 0.75;
 
         context.save();
-        context.globalAlpha = animation ? 0.62 : 0.32;
+        context.globalAlpha = (animation ? 0.62 : 0.32) * (1 - fallProgress * 0.65);
         context.fillStyle = '#9fbd75';
         context.beginPath();
-        context.ellipse(x, groundY + 9, layout.radius * 0.8, 4, 0, 0, Math.PI * 2);
+        context.ellipse(pokemonX, groundY + 9 + fallOffset, layout.radius * 0.8, 4, 0, 0, Math.PI * 2);
         context.fill();
         context.restore();
 
         if (!pokemonImage) {
             context.save();
+            context.globalAlpha = 1 - fallProgress * 0.55;
             context.beginPath();
-            context.arc(x, groundY - 27 - jumpHeight, 18, 0, Math.PI * 2);
+            context.arc(pokemonX, groundY - 27 - jumpHeight + fallOffset, 18, 0, Math.PI * 2);
             context.fillStyle = 'rgba(132, 174, 87, 0.22)';
             context.fill();
             context.strokeStyle = 'rgba(106, 151, 66, 0.7)';
@@ -196,10 +205,13 @@
         context.save();
         context.shadowColor = 'rgba(99, 138, 58, 0.24)';
         context.shadowBlur = 12;
+        context.globalAlpha = 1 - fallProgress * 0.55;
+        context.translate(pokemonX, groundY - spriteHeight / 2 - jumpHeight + fallOffset);
+        context.rotate(fallProgress * Math.PI * 0.45);
         context.drawImage(
             pokemonImage,
-            x - spriteWidth / 2,
-            groundY - spriteHeight - jumpHeight,
+            -spriteWidth / 2,
+            -spriteHeight / 2,
             spriteWidth,
             spriteHeight
         );
@@ -216,6 +228,7 @@
 
         let playerX = xForPosition(position, layout);
         let jumpHeight = 0;
+        let fallProgress = 0;
         if (animation) {
             const progress = Math.min(1, (currentTime - animation.startedAt) / animationDuration);
             const easedProgress = progress * progress * (3 - 2 * progress);
@@ -223,9 +236,12 @@
                 + (xForPosition(animation.to, layout) - xForPosition(animation.from, layout)) * easedProgress;
             jumpHeight = Math.sin(progress * Math.PI) * Math.min(78, layout.height * 0.22);
         }
+        if (fallAnimation) {
+            fallProgress = Math.min(1, (currentTime - fallAnimation.startedAt) / fallAnimationDuration);
+        }
         const cameraOffset = Math.max(0, playerX - layout.viewportWidth / 2);
         canvas.style.transform = `translate3d(${-cameraOffset}px, 0, 0)`;
-        drawPokemon(playerX, layout, jumpHeight);
+        drawPokemon(playerX, layout, jumpHeight, fallProgress);
     }
 
     function resizeCanvas() {
@@ -240,21 +256,25 @@
 
     function updateInterface() {
         const isPlaying = gameState === 'playing';
+        const isRoundActive = isPlaying || gameState === 'losing' || gameState === 'cashing-out';
         const balance = window.PokemoPoints.getBalance();
         const stake = stakeForRound();
         const labels = {
             loading: 'POKÉMON LÄDT',
             ready: 'BEREIT',
             playing: 'RUN LÄUFT',
+            losing: 'ABSTURZ',
+            'cashing-out': 'GEWINN',
             lost: 'RUN BEENDET',
             'cashed-out': 'AUSGESTIEGEN',
             'load-error': 'OFFLINE'
         };
 
-        startButton.hidden = isPlaying;
+        startButton.hidden = isRoundActive;
         crossButton.hidden = !isPlaying;
         exitButton.hidden = !isPlaying;
-        betPanel.hidden = isPlaying;
+        betPanel.hidden = isRoundActive;
+        payoutAnimation.hidden = gameState !== 'cashing-out';
         availablePoints.textContent = balance.toLocaleString('de-DE');
         stakeInput.max = String(Math.floor(balance));
         startButton.disabled = gameState === 'loading'
@@ -356,8 +376,10 @@
 
         if (Math.random() >= survivalChanceFor(position)) {
             failedJump = position;
-            gameState = 'lost';
+            gameState = 'losing';
             status.textContent = `Bei Sprung ${position} bist du abgestürzt. Deine Überlebenschance lag bei ${Math.round(survivalChanceFor(position) * 100)} %. Dein Einsatz von ${currentStake} Pokémo-Punkten ist verloren.`;
+            animateFall();
+            return;
         } else if (position === circleCount) {
             status.textContent = `Ziel erreicht! Dein Multiplikator steht bei x${formatMultiplier(position)}. Du kannst jetzt aussteigen.`;
         } else {
@@ -366,9 +388,29 @@
 
         updateInterface();
         draw();
-        if (gameState === 'lost') {
+    }
+
+    function animateFall() {
+        fallAnimation = {
+            startedAt: performance.now()
+        };
+        updateInterface();
+
+        function frame(now) {
+            draw(now);
+            if (now - fallAnimation.startedAt < fallAnimationDuration) {
+                requestAnimationFrame(frame);
+                return;
+            }
+
+            fallAnimation = null;
+            gameState = 'lost';
+            updateInterface();
+            draw();
             stakeInput.focus();
         }
+
+        requestAnimationFrame(frame);
     }
 
     function animateJump(nextPosition) {
@@ -403,13 +445,41 @@
             return;
         }
 
-        gameState = 'cashed-out';
         const payout = Number((currentStake * multiplierFor(position)).toFixed(1));
+        const multiplier = formatMultiplier(position);
+        gameState = 'cashing-out';
+        payoutAmount.textContent = '+0';
+        status.textContent = `Du steigst mit x${multiplier} aus. Dein Gewinn wird angezeigt.`;
+        status.setAttribute('aria-live', 'off');
         window.PokemoPoints.setBalance(window.PokemoPoints.getBalance() + payout);
-        status.textContent = `Du steigst mit x${formatMultiplier(position)} aus und erhältst ${payout.toLocaleString('de-DE')} Pokémo-Punkte.`;
         updateInterface();
         draw();
-        stakeInput.focus();
+        animatePayout(payout, multiplier);
+    }
+
+    function animatePayout(payout, multiplier) {
+        const startedAt = performance.now();
+
+        function frame(now) {
+            const progress = Math.min(1, (now - startedAt) / payoutAnimationDuration);
+            const easedProgress = 1 - Math.pow(1 - progress, 3);
+            const animatedPayout = Math.round(payout * easedProgress * 10) / 10;
+            payoutAmount.textContent = `+${animatedPayout.toLocaleString('de-DE', { maximumFractionDigits: 1 })}`;
+
+            if (progress < 1) {
+                requestAnimationFrame(frame);
+                return;
+            }
+
+            gameState = 'cashed-out';
+            status.setAttribute('aria-live', 'polite');
+            status.textContent = `Du steigst mit x${multiplier} aus und erhältst ${payout.toLocaleString('de-DE')} Pokémo-Punkte.`;
+            updateInterface();
+            draw();
+            stakeInput.focus();
+        }
+
+        requestAnimationFrame(frame);
     }
 
     startButton.addEventListener('click', () => {
