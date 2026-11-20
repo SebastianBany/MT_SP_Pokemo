@@ -15,7 +15,7 @@
 
     function setStarterPokemonId(pokemonId) {
         if (!starterPokemonIds.includes(pokemonId)) {
-            throw new RangeError('Choose one of the configured starter Pokémon.');
+            throw new RangeError('Choose one of the configured starter Pokemon.');
         }
 
         localStorage.setItem(storageKey, String(pokemonId));
@@ -24,9 +24,14 @@
         }));
     }
 
+    function reset() {
+        setStarterPokemonId(defaultStarterPokemonId);
+    }
+
     global.PokemoProfile = Object.freeze({
         starterPokemonIds,
         getStarterPokemonId,
-        setStarterPokemonId
+        setStarterPokemonId,
+        reset
     });
 })(window);
