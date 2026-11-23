@@ -1,17 +1,406 @@
-.page-glutox .page-content {
-  max-width: 72rem;
-  min-height: 50vh;
-  text-align: left;
-  color: black;
+.page-glutox {
+  position: relative;
+  isolation: isolate;
+  box-sizing: border-box;
+  width: calc(100% + 100px);
+  margin: 0 -50px;
+  padding: clamp(2rem, 5vw, 4.5rem) clamp(1.25rem, 5vw, 4rem);
+  overflow: hidden;
+  background: #ffffff;
+  color: #35412e;
+  font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
 }
 
-.canvas-container {
+.glutox-shell {
+  width: min(100%, 980px);
+  margin: 0 auto;
+}
 
-  border: 3px solid #000000;
-  display: flex;
-  align-items: center;     /* Vertikal zentrieren */
-  height: 100vh;           /* Volle Bildschirmhöhe */
+.glutox-heading {
+  margin-bottom: 2rem;
+}
+
+.glutox-heading h1 {
   margin: 0;
-
+  color: #354b2c;
+  font-size: clamp(2.6rem, 6vw, 4.8rem);
+  font-weight: 750;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
 }
 
+.glutox-heading .heading-accent {
+  color: #d54c46;
+}
+
+.glutox-heading .game-subtitle {
+  max-width: 42rem;
+  margin: 1rem 0 0;
+  color: #697660;
+  font-size: clamp(0.95rem, 1.5vw, 1.08rem);
+  line-height: 1.6;
+}
+
+.page-glutox .game-panel {
+  padding: clamp(1rem, 2.5vw, 1.6rem);
+  border: 1px solid #e1e8d8;
+  border-radius: 0.9rem;
+  background: #ffffff;
+  box-shadow: 0 3px 12px rgba(58, 76, 43, 0.07);
+}
+
+.page-glutox .game-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.page-glutox .game-panel-header h2 {
+  margin: 0.3rem 0 0;
+  color: #3e5034;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.page-glutox .state-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.58rem 0.8rem;
+  border: 1px solid #dce5d2;
+  border-radius: 999px;
+  background: #f7faef;
+  color: #596c47;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.page-glutox .state-chip[data-state="playing"] {
+  border-color: #c9ddb1;
+  color: #5e8139;
+}
+
+.page-glutox .state-chip[data-state="lost"],
+.page-glutox .state-chip[data-state="losing"],
+.page-glutox .state-chip[data-state="load-error"] {
+  border-color: #ecc8be;
+  color: #bd5144;
+}
+
+.page-glutox .state-chip[data-state="cashed-out"],
+.page-glutox .state-chip[data-state="won"] {
+  border-color: #e8d6a5;
+  color: #8b7134;
+}
+
+.glutox-board-wrap {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e5ddba;
+  border-radius: 0.65rem;
+  background: #f3edcf;
+}
+
+.glutox-board {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  flex-direction: column;
+  gap: 0.55rem;
+  height: clamp(500px, 70vh, 720px);
+  min-height: 500px;
+  padding: clamp(0.75rem, 2vw, 1.4rem);
+}
+
+.glutox-row {
+  display: grid;
+  flex: 1 1 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.5rem, 2vw, 1.2rem);
+  min-height: 0;
+}
+
+.glutox-tile {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  place-items: center;
+  border: 2px solid #d0dcbf;
+  border-radius: 0.8rem;
+  background: linear-gradient(145deg, #fffef7, #edf3df);
+  box-shadow: 0 3px 8px rgba(79, 99, 55, 0.09);
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+.glutox-tile:disabled {
+  cursor: default;
+}
+
+.glutox-tile:not(:disabled):hover {
+  transform: translateY(-2px);
+  border-color: #8eae63;
+  box-shadow: 0 7px 16px rgba(79, 99, 55, 0.16);
+}
+
+.glutox-tile:focus-visible {
+  outline: 3px solid #8eb45b;
+  outline-offset: 3px;
+}
+
+.glutox-tile.is-safe {
+  border-color: #77a547;
+  background: linear-gradient(145deg, #e1f3c6, #a8ce78);
+  box-shadow: 0 0 0 3px rgba(119, 165, 71, 0.18), 0 5px 16px rgba(100, 145, 57, 0.2);
+}
+
+.glutox-tile.is-danger {
+  border-color: #d97662;
+  background: linear-gradient(145deg, #ffdbcf, #ee8b7b);
+  box-shadow: 0 0 0 3px rgba(217, 118, 98, 0.2), 0 5px 16px rgba(176, 67, 60, 0.2);
+}
+
+.glutox-start-line {
+  display: grid;
+  flex: 0 0 2rem;
+  place-items: center;
+  border-top: 2px dashed #c7b98a;
+  color: #8e815c;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.glutox-pokemon {
+  position: absolute;
+  z-index: 1;
+  width: clamp(58px, 9vw, 92px);
+  height: clamp(58px, 9vw, 92px);
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 5px 5px rgba(68, 86, 45, 0.23));
+  transform: translate(-50%, -78%);
+  transition: left 380ms cubic-bezier(0.2, 0.72, 0.25, 1), top 380ms cubic-bezier(0.2, 0.72, 0.25, 1);
+}
+
+.glutox-pokemon.is-jumping {
+  animation: glutox-jump 380ms ease-in-out;
+}
+
+@keyframes glutox-jump {
+  0%, 100% { transform: translate(-50%, -78%); }
+  45% { transform: translate(-50%, -105%) scale(1.08); }
+}
+
+.glutox-bet-overlay[hidden] {
+  display: none;
+}
+
+.glutox-bet-overlay {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: grid;
+  box-sizing: border-box;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgba(42, 49, 34, 0.38);
+  backdrop-filter: blur(2px);
+}
+
+.glutox-bet-card {
+  display: grid;
+  gap: 0.75rem;
+  box-sizing: border-box;
+  width: min(100%, 24rem);
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 1px solid #dce5ce;
+  border-radius: 0.9rem;
+  background: #fffef7;
+  box-shadow: 0 16px 48px rgba(48, 57, 37, 0.2);
+}
+
+.glutox-bet-kicker {
+  color: #7d9955;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.glutox-bet-card h3 {
+  margin: 0 0 0.35rem;
+  color: #3e5034;
+  font-size: 1.2rem;
+  line-height: 1.35;
+}
+
+.glutox-bet-card label {
+  color: #536247;
+}
+
+.glutox-bet-card input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #cbd9b9;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #354b2c;
+  font: inherit;
+  font-size: 1.1rem;
+}
+
+.glutox-bet-card input:focus-visible {
+  outline: 3px solid #8eb45b;
+  outline-offset: 2px;
+}
+
+.glutox-balance {
+  margin: 0;
+  color: #718067;
+  font-size: 0.85rem;
+}
+
+.glutox-balance strong {
+  color: #45583a;
+}
+
+.glutox-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.25rem auto 1rem;
+}
+
+.glutox-current {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.glutox-current span {
+  color: #70864f;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.glutox-current strong {
+  color: #d54c46;
+  font-size: 1.4rem;
+}
+
+.glutox-button {
+  min-width: 12rem;
+  padding: 0.9rem 1.5rem;
+  border: 1px solid transparent;
+  border-radius: 0.55rem;
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.glutox-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.glutox-button:focus-visible {
+  outline: 3px solid #8eb45b;
+  outline-offset: 3px;
+}
+
+.glutox-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.glutox-button[hidden] {
+  display: none;
+}
+
+.glutox-button-start {
+  background: #6f9d43;
+}
+
+.glutox-button-start:hover:not(:disabled) {
+  background: #5e8937;
+}
+
+.glutox-button-exit {
+  border-color: #e3c56f;
+  background: #f5e6ae;
+  color: #665225;
+}
+
+.glutox-button-exit:hover:not(:disabled) {
+  background: #edda91;
+}
+
+.page-glutox .game-panel-footer {
+  padding-top: 1rem;
+  border-top: 1px solid #e8ede2;
+}
+
+.page-glutox .game-status {
+  min-height: 1.5em;
+  margin: 0;
+  color: #4b5c40;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 760px) {
+  .page-glutox {
+    width: calc(100% + 100px);
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-glutox .game-panel-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .glutox-board {
+    height: min(75vh, 640px);
+    min-height: 480px;
+    gap: 0.4rem;
+    padding: 0.65rem;
+  }
+
+  .glutox-row {
+    gap: 0.45rem;
+  }
+
+  .glutox-tile {
+    border-radius: 0.6rem;
+  }
+
+  .glutox-controls {
+    align-items: stretch;
+  }
+
+  .glutox-button {
+    min-width: 0;
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glutox-tile,
+  .glutox-button,
+  .glutox-pokemon {
+    transition-duration: 0.01ms;
+  }
+}
