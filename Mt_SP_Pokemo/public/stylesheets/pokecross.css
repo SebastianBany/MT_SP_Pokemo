@@ -235,6 +235,7 @@
 }
 
 .state-chip[data-state="lost"],
+.state-chip[data-state="game-over"],
 .state-chip[data-state="losing"],
 .state-chip[data-state="load-error"] {
   border-color: rgba(255, 111, 121, 0.4);
@@ -269,6 +270,132 @@
   width: 100%;
   min-width: 1180px;
   height: 100%;
+}
+
+.payout-animation[hidden] {
+  display: none;
+}
+
+.payout-animation {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background: radial-gradient(ellipse at center, rgba(42, 33, 12, 0.55), rgba(7, 12, 19, 0.78));
+  pointer-events: none;
+  animation: payout-appear 420ms ease-out both;
+}
+
+.payout-animation-label {
+  color: #f8df93;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.payout-animation strong {
+  color: #ffdf72;
+  font-size: clamp(3rem, 10vw, 6rem);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-shadow: 0 0 32px rgba(255, 199, 67, 0.45);
+}
+
+.payout-animation small {
+  color: #e4e8cf;
+  font-size: 0.85rem;
+}
+
+.game-over-overlay[hidden] {
+  display: none;
+}
+
+.game-over-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  box-sizing: border-box;
+  place-items: center;
+  padding: 1.25rem;
+  overflow-y: auto;
+  background: rgba(37, 17, 18, 0.78);
+  backdrop-filter: blur(5px);
+}
+
+.game-over-card {
+  display: grid;
+  justify-items: center;
+  gap: 0.8rem;
+  box-sizing: border-box;
+  width: min(100%, 38rem);
+  padding: clamp(1.5rem, 5vw, 3rem);
+  border: 2px solid #e8a29a;
+  border-radius: 1.1rem;
+  background: linear-gradient(145deg, #fffdfa, #f8e9e3);
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.42);
+  text-align: center;
+  animation: game-over-appear 420ms ease-out both;
+}
+
+.game-over-kicker {
+  color: #9c4540;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.game-over-card h2 {
+  margin: 0;
+  color: #bd3434;
+  font-size: clamp(3.2rem, 12vw, 7rem);
+  font-weight: 1000;
+  letter-spacing: -0.07em;
+  line-height: 0.95;
+  text-shadow: 0 5px 0 #f1c4b8, 0 10px 24px rgba(130, 32, 32, 0.2);
+}
+
+.game-over-card p {
+  max-width: 29rem;
+  margin: 0.2rem 0 0.7rem;
+  color: #5c514c;
+  font-size: clamp(0.9rem, 2.3vw, 1.05rem);
+  line-height: 1.55;
+}
+
+.game-over-card .pokecross-button {
+  min-width: min(100%, 16rem);
+}
+
+@keyframes game-over-appear {
+  from {
+    opacity: 0;
+    transform: translateY(0.8rem) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes payout-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .pokecross-controls {
@@ -561,8 +688,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .pokecross-button,
-  .progress-track > span {
+  .progress-track > span,
+  .game-over-card {
     transition: none;
+    animation: none;
   }
 }
 
@@ -717,6 +846,17 @@
 
 .pokecross-button-exit:hover:not(:disabled) {
   background: #edda91;
+}
+
+.pokecross-button-all-in {
+  border-color: #e3c56f;
+  background: #f5e6ae;
+  color: #665225;
+}
+
+.pokecross-button-all-in:hover:not(:disabled) {
+  background: #edda91;
+  filter: none;
 }
 
 .pokecross-button:focus-visible {

@@ -23,7 +23,7 @@
             const request = fetch(url, { signal: controller.signal })
                 .then((response) => {
                     if (!response.ok) {
-                        throw new Error(`PokéAPI request failed with status ${response.status}.`);
+                        throw new Error(`PokeAPI request failed with status ${response.status}.`);
                     }
                     return response.json();
                 })
