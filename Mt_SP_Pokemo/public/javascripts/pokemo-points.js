@@ -10,9 +10,17 @@
     }
 
     function getBalance() {
-        const balance = Number(localStorage.getItem(storageKey));
-        if (!Number.isFinite(balance) || balance < 0 || !Number.isSafeInteger(balance * 10)) {
-            throw new Error('The saved Pokémo points balance is invalid.');
+        const savedBalance = localStorage.getItem(storageKey);
+        const balance = savedBalance === null ? Number.NaN : Number(savedBalance);
+        if (
+            savedBalance === null ||
+            savedBalance.trim() === '' ||
+            !Number.isFinite(balance) ||
+            balance < 0 ||
+            !Number.isSafeInteger(balance * 10)
+        ) {
+            localStorage.setItem(storageKey, String(initialBalance));
+            return initialBalance;
         }
         return balance;
     }
