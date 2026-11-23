@@ -11,6 +11,10 @@
     <script src="/javascripts/pokemo-points.js" defer></script>
     <script src="/javascripts/pokemo-profile.js" defer></script>
     <script src="/javascripts/pokeapi.js" defer></script>
+    <% if (typeof pageJs !== 'undefined') { %>
+    <link rel="stylesheet" href="/stylesheets/game-animations.css">
+    <script src="/javascripts/game-animations.js" defer></script>
+    <% } %>
 </head>
 <body>
     <%- include('../partials/header') %>
