@@ -1,0 +1,81 @@
+.page-home {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem 0 3rem;
+  color: #222;
+}
+
+.home-intro {
+  padding: 1.5rem 0 2rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.home-label {
+  margin: 0 0 0.5rem;
+  color: #c62828;
+  font-size: 0.8rem;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+}
+
+.home-intro h1 {
+  margin: 0;
+  font-size: 2.4rem;
+}
+
+.home-intro > p:last-child {
+  margin: 0.75rem 0 0;
+  color: #555;
+  font-size: 1.05rem;
+}
+
+.game-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  padding-top: 1.5rem;
+}
+
+.game-card {
+  display: block;
+  padding: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+}
+
+.game-card:hover {
+  border-color: #c62828;
+}
+
+.game-card h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+}
+
+.game-card p {
+  margin: 0 0 1.25rem;
+  color: #555;
+  line-height: 1.5;
+}
+
+.game-card span {
+  color: #b71c1c;
+  font-weight: bold;
+}
+
+@media (max-width: 600px) {
+  .page-home {
+    padding-top: 0;
+  }
+
+  .home-intro h1 {
+    font-size: 2rem;
+  }
+
+  .game-list {
+    grid-template-columns: 1fr;
+  }
+}

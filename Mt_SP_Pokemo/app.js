@@ -18,7 +18,10 @@ server.set('layout', 'layouts/main');
 
 // Routes
 server.get('/', (request, response) => {
-  response.render('index', { title: 'Pokemo', text: 'Willkommen bei Pokemo.' });
+  response.render('index', {
+    title: 'Pokemo',
+    pageCss: '/stylesheets/home.css'
+  });
 });
 
 server.get('/glutox', (request, response) => {
