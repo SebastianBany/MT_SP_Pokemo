@@ -7,6 +7,7 @@
     const tiles = Array.from(document.querySelectorAll('.glutox-tile'));
     const pokemon = document.getElementById('glutoxPokemon');
     const startButton = document.getElementById('glutoxStart');
+    const allInButton = document.getElementById('glutoxAllIn');
     const exitButton = document.getElementById('glutoxExit');
     const stakeInput = document.getElementById('glutoxStake');
     const betPanel = document.getElementById('glutoxBet');
@@ -18,7 +19,7 @@
     const payoutAmount = document.getElementById('glutoxPayoutAmount');
 
     if (!board || tiles.length !== rowCount * columnCount || !pokemon || !startButton
-        || !exitButton || !stakeInput || !betPanel || !availablePoints || !status
+        || !allInButton || !exitButton || !stakeInput || !betPanel || !availablePoints || !status
         || !stateLabel || !multiplierLabel || !payout || !payoutAmount) {
         throw new Error('Glutox is missing required game elements.');
     }
@@ -35,6 +36,7 @@
     let pokemonImageLoaded = false;
     let currentLevel = 0;
     let currentStake = 0;
+    let allInSelected = false;
     let failedRowsByColumn = [];
     let previousFailedRows = null;
     let positionedTile = null;
@@ -55,9 +57,10 @@
     }
 
     // Reads and validates the stake from the bet dialog.
-    function stakeForRound() {
+    function stakeForRound(balance) {
         const stake = stakeInput.valueAsNumber;
-        return Number.isSafeInteger(stake) && stake > 0 ? stake : null;
+        return Number.isSafeInteger(stake) && stake > 0
+            && (stake % 10 === 0 || (allInSelected && stake === balance)) ? stake : null;
     }
 
     // Updates buttons, available points, multipliers, and round state.
@@ -66,7 +69,7 @@
         const isRoundActive = isPlaying || gameState === 'jumping' || gameState === 'losing'
             || gameState === 'cashing-out';
         const balance = window.PokemoPoints.getBalance();
-        const stake = stakeForRound();
+        const stake = stakeForRound(balance);
         const labels = {
             loading: 'POKÉMON LÄDT',
             ready: 'BEREIT',
@@ -84,8 +87,9 @@
         exitButton.hidden = !isPlaying;
         exitButton.disabled = !isPlaying;
         exitButton.textContent = `Auszahlen (x${formatMultiplier(currentLevel)})`;
-        availablePoints.textContent = balance.toLocaleString('de-DE');
-        stakeInput.max = String(Math.floor(balance));
+        availablePoints.textContent = String(balance);
+        stakeInput.max = String(balance);
+        allInButton.disabled = balance < 1;
         startButton.disabled = gameState === 'loading'
             || (gameState !== 'load-error' && (!pokemonImageLoaded || stake === null || stake > balance));
         startButton.textContent = gameState === 'loading'
@@ -200,7 +204,7 @@
     // Clears old highlights and prepares a fresh randomized board.
     function resetBoard() {
         tiles.forEach((tile) => {
-            tile.classList.remove('is-safe', 'is-danger');
+            tile.classList.remove('is-safe', 'is-danger', 'is-unselected', 'is-path');
         });
         failedRowsByColumn = generateFailedRows();
         currentLevel = 0;
@@ -209,6 +213,25 @@
         pokemon.style.transform = '';
         pokemon.hidden = !pokemonImageLoaded;
         positionPokemon(null);
+    }
+
+    // Reveals the first safe tile in each row as one valid route.
+    function revealSafePath() {
+        const safePath = [];
+        for (let row = 0; row < rowCount; row += 1) {
+            const safeTile = tiles.find((tile) => {
+                const column = Number(tile.dataset.column);
+                return Number(tile.dataset.row) === row && failedRowsByColumn[column] !== row;
+            });
+            if (!safeTile) {
+                throw new Error(`Glutox could not find a safe tile in row ${row + 1}.`);
+            }
+            safePath.push(safeTile);
+        }
+
+        tiles.forEach((tile) => {
+            tile.classList.add(safePath.includes(tile) ? 'is-path' : 'is-unselected');
+        });
     }
 
     // Adds the winnings to the balance and animates the payout overlay.
@@ -227,7 +250,7 @@
             payout.hidden = true;
             gameState = state;
             status.setAttribute('aria-live', 'polite');
-            status.textContent = `${message} Du erhältst ${amount.toLocaleString('de-DE')} Pokémo-Punkte (x${multiplier}).`;
+            status.textContent = `${message} Du erhältst ${String(amount)} Pokémo-Punkte (x${multiplier}).`;
             updateInterface();
         });
     }
@@ -245,6 +268,11 @@
         }
 
         const isSafe = failedRowsByColumn[column] !== row;
+        tiles.forEach((rowTile) => {
+            if (Number(rowTile.dataset.row) === row && rowTile !== tile) {
+                rowTile.classList.add('is-unselected');
+            }
+        });
         tile.classList.add(isSafe ? 'is-safe' : 'is-danger');
         gameState = isSafe ? 'jumping' : 'losing';
         positionPokemon(tile);
@@ -257,6 +285,7 @@
         transitionTimer = window.setTimeout(() => {
             pokemon.classList.remove('is-jumping');
             if (!isSafe) {
+                revealSafePath();
                 window.PokemoAnimations.animateFall((progress) => {
                     pokemon.style.opacity = String(1 - progress);
                     pokemon.style.transform = `translate(-50%, ${-78 + 173 * progress}%) rotate(${75 * progress}deg)`;
@@ -289,22 +318,34 @@
             return;
         }
 
-        const stake = stakeForRound();
         const balance = window.PokemoPoints.getBalance();
+        const stake = stakeForRound(balance);
         if (stake === null || stake > balance) {
-            status.textContent = 'Der Einsatz muss eine positive ganze Zahl sein und darf dein Guthaben nicht überschreiten.';
+            status.textContent = 'Der Einsatz muss ein Vielfaches von 10 oder dein gesamtes Guthaben sein.';
             updateInterface();
             stakeInput.focus();
             return;
         }
 
         currentStake = stake;
+        allInSelected = false;
         window.PokemoPoints.setBalance(balance - currentStake);
         window.clearTimeout(transitionTimer);
         payout.hidden = true;
         resetBoard();
         gameState = 'playing';
         status.textContent = 'Die Runde läuft. Wähle ein Feld in der untersten Reihe.';
+        updateInterface();
+    }
+
+    function selectAllIn() {
+        const balance = window.PokemoPoints.getBalance();
+        if (balance < 1) {
+            return;
+        }
+
+        stakeInput.value = String(balance);
+        allInSelected = true;
         updateInterface();
     }
 
@@ -324,8 +365,12 @@
         }
     });
     tiles.forEach((tile) => tile.addEventListener('click', () => chooseTile(tile)));
+    allInButton.addEventListener('click', selectAllIn);
     exitButton.addEventListener('click', exitGame);
-    stakeInput.addEventListener('input', updateInterface);
+    stakeInput.addEventListener('input', () => {
+        allInSelected = false;
+        updateInterface();
+    });
     window.addEventListener('pokemo-points-change', updateInterface);
     window.addEventListener('pokemo-starter-change', () => {
         if (!['playing', 'jumping', 'losing', 'cashing-out'].includes(gameState)) {

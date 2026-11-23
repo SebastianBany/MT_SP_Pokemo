@@ -29,7 +29,7 @@
         animateProgress(payoutDuration, (progress) => {
             const easedProgress = 1 - Math.pow(1 - progress, 3);
             const animatedAmount = Math.round(amount * easedProgress * 10) / 10;
-            amountElement.textContent = `+${animatedAmount.toLocaleString('de-DE', { maximumFractionDigits: 1 })}`;
+            amountElement.textContent = `+${String(animatedAmount)}`;
         }, onComplete);
     }
 

@@ -152,10 +152,22 @@
   outline-offset: 3px;
 }
 
+.glutox-tile.is-unselected {
+  border-color: #c7c8c0;
+  background: linear-gradient(145deg, #e8e8e3, #d9dad4);
+  box-shadow: 0 2px 6px rgba(79, 83, 69, 0.08);
+}
+
 .glutox-tile.is-safe {
   border-color: #77a547;
   background: linear-gradient(145deg, #e1f3c6, #a8ce78);
   box-shadow: 0 0 0 3px rgba(119, 165, 71, 0.18), 0 5px 16px rgba(100, 145, 57, 0.2);
+}
+
+.glutox-tile.is-path {
+  border-color: #5b9840;
+  background: linear-gradient(145deg, #d9f3c1, #8fc96b);
+  box-shadow: 0 0 0 3px rgba(91, 152, 64, 0.2), 0 5px 16px rgba(78, 133, 52, 0.2);
 }
 
 .glutox-tile.is-danger {
@@ -332,6 +344,16 @@
 
 .glutox-button-start:hover:not(:disabled) {
   background: #5e8937;
+}
+
+.glutox-button-all-in {
+  border-color: #e3c56f;
+  background: #f5e6ae;
+  color: #665225;
+}
+
+.glutox-button-all-in:hover:not(:disabled) {
+  background: #edda91;
 }
 
 .glutox-button-exit {
