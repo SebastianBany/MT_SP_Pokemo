@@ -22,7 +22,7 @@
     }
 
     function formatBalance(balance) {
-        return balance.toLocaleString('de-DE');
+        return String(balance);
     }
 
     function renderBalance() {
