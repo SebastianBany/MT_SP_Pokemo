@@ -34,6 +34,10 @@
         throw new Error('Pokecross requires the shared statistics and achievements services.');
     }
 
+    if (!window.PokemoAnimations) {
+        throw new Error('Pokecross requires the shared game animation service.');
+    }
+
     const context = canvas.getContext('2d');
     if (!context) {
         throw new Error('Pokecross requires a browser with Canvas support.');
@@ -72,9 +76,10 @@
     }
 
     // Reads and validates the stake entered before a round.
-    function stakeForRound() {
+    function stakeForRound(balance) {
         const stake = stakeInput.valueAsNumber;
-        return Number.isSafeInteger(stake) && stake > 0 ? stake : null;
+        return Number.isSafeInteger(stake) && stake > 0
+            && (stake % 10 === 0 || (allInSelected && stake === balance)) ? stake : null;
     }
 
     // Calculates canvas dimensions and spacing for the current viewport.
@@ -278,7 +283,7 @@
         const isRoundActive = isPlaying || gameState === 'losing' || gameState === 'cashing-out'
             || gameState === 'game-over';
         const balance = window.PokemoPoints.getBalance();
-        const stake = stakeForRound();
+        const stake = stakeForRound(balance);
         const labels = {
             loading: 'POKEMON LÄDT',
             ready: 'BEREIT',
@@ -287,6 +292,7 @@
             'cashing-out': 'GEWINN',
             lost: 'RUN BEENDET',
             'cashed-out': 'AUSGESTIEGEN',
+            won: 'ZIEL ERREICHT',
             'game-over': 'GAME OVER',
             'load-error': 'OFFLINE'
         };
@@ -296,7 +302,7 @@
         exitButton.hidden = !isPlaying;
         betPanel.hidden = isRoundActive;
         payoutAnimation.hidden = gameState !== 'cashing-out';
-        availablePoints.textContent = balance.toLocaleString('de-DE');
+        availablePoints.textContent = String(balance);
         stakeInput.max = String(Math.floor(balance));
         allInButton.disabled = Math.floor(balance) < 1;
         startButton.disabled = gameState === 'loading'
@@ -306,7 +312,11 @@
             : gameState === 'load-error'
                 ? 'Pokemon erneut laden'
                 : gameState === 'ready' ? 'Runde starten' : 'Neue Runde';
-        gameOverOverlay.hidden = gameState !== 'game-over';
+        window.PokemoAnimations.setGameOverVisible(
+            gameOverOverlay,
+            gameState === 'game-over',
+            restartButton
+        );
         crossButton.disabled = Boolean(animation) || position >= circleCount;
         exitButton.disabled = Boolean(animation);
         exitButton.textContent = `Aussteigen (x${formatMultiplier(position)})`;
@@ -397,16 +407,17 @@
             return;
         }
 
-        const stake = stakeForRound();
         const balance = window.PokemoPoints.getBalance();
+        const stake = stakeForRound(balance);
         if (stake === null || stake > balance) {
-            status.textContent = 'Der Einsatz muss eine positive ganze Zahl sein und darf dein Guthaben nicht überschreiten.';
+            status.textContent = 'Der Einsatz muss ein Vielfaches von 10 oder dein gesamtes Guthaben sein.';
             updateInterface();
             stakeInput.focus();
             return;
         }
 
         currentStake = stake;
+        allInSelected = false;
         window.PokemoPoints.setBalance(balance - currentStake);
         roundRecorded = false;
         failedJump = null;
@@ -432,13 +443,13 @@
             return;
         }
 
+        window.PokemoAchievements.recordPokecrossProgress(position);
         if (position === circleCount) {
-            status.textContent = `Ziel erreicht! Dein Multiplikator steht bei x${formatMultiplier(position)}. Du kannst jetzt aussteigen.`;
-        } else {
-            status.textContent = `Sicher gelandet! Überlebenschance beim nächsten Sprung: ${Math.round(survivalChanceFor(position + 1) * 100)} %.`;
+            exitGame();
+            return;
         }
 
-        window.PokemoAchievements.recordPokecrossProgress(position);
+        status.textContent = `Sicher gelandet! Überlebenschance beim nächsten Sprung: ${Math.round(survivalChanceFor(position + 1) * 100)} %.`;
         updateInterface();
         draw();
     }
@@ -492,22 +503,25 @@
         animateJump(position + 1);
     }
 
-    // Pays out the current multiplier when the player exits early.
+    // Pays out the current multiplier when the player exits or reaches the goal.
     function exitGame() {
         if (gameState !== 'playing' || animation) {
             return;
         }
 
+        const hasWon = position === circleCount;
         const payout = Number((currentStake * multiplierFor(position)).toFixed(1));
         const multiplier = formatMultiplier(position);
         gameState = 'cashing-out';
         payoutAmount.textContent = '+0';
-        status.textContent = `Du steigst mit x${multiplier} aus. Dein Gewinn wird angezeigt.`;
+        status.textContent = hasWon
+            ? 'Ziel erreicht! Die Auszahlung wird angezeigt.'
+            : `Du steigst mit x${multiplier} aus. Dein Gewinn wird angezeigt.`;
         status.setAttribute('aria-live', 'off');
         window.PokemoPoints.setBalance(window.PokemoPoints.getBalance() + payout);
         updateInterface();
         draw();
-        animatePayout(payout, multiplier);
+        animatePayout(payout, multiplier, hasWon);
     }
 
     function recordCompletedRound(won, earnedPoints) {
@@ -520,12 +534,17 @@
     }
 
     // Counts up the payout display and finishes the cash-out state.
-    function animatePayout(payout, multiplier) {
+    function animatePayout(payout, multiplier, hasWon) {
         window.PokemoAnimations.animatePayout(payoutAmount, payout, () => {
             gameState = 'cashed-out';
-            recordCompletedRound(position === circleCount, payout);
+            if (hasWon) {
+                gameState = 'won';
+            }
+            recordCompletedRound(hasWon, payout);
             status.setAttribute('aria-live', 'polite');
-            status.textContent = `Du steigst mit x${multiplier} aus und erhältst ${payout.toLocaleString('de-DE')} Pokemo-Punkte.`;
+            status.textContent = hasWon
+                ? `Ziel erreicht! Du erhältst ${payout.toLocaleString('de-DE')} Pokemo-Punkte (x${multiplier}).`
+                : `Du steigst mit x${multiplier} aus und erhältst ${payout.toLocaleString('de-DE')} Pokemo-Punkte.`;
             updateInterface();
             draw();
             stakeInput.focus();
@@ -546,7 +565,6 @@
         status.textContent = 'Game Over. Dein Spielstand wurde zurückgesetzt.';
         updateInterface();
         draw();
-        restartButton.focus();
     }
 
     function restartGame() {
@@ -555,16 +573,6 @@
         }
 
         loadPokemon();
-    }
-
-    function selectAllIn() {
-        const maximumStake = Math.floor(window.PokemoPoints.getBalance());
-        if (maximumStake < 1) {
-            return;
-        }
-
-        stakeInput.value = String(maximumStake);
-        updateInterface();
     }
 
     startButton.addEventListener('click', () => {
@@ -576,9 +584,20 @@
     });
     crossButton.addEventListener('click', cross);
     exitButton.addEventListener('click', exitGame);
-    allInButton.addEventListener('click', selectAllIn);
+    window.PokemoAnimations.bindAllInButton(
+        allInButton,
+        stakeInput,
+        () => window.PokemoPoints.getBalance(),
+        () => {
+            allInSelected = true;
+            updateInterface();
+        }
+    );
     restartButton.addEventListener('click', restartGame);
-    stakeInput.addEventListener('input', updateInterface);
+    stakeInput.addEventListener('input', () => {
+        allInSelected = false;
+        updateInterface();
+    });
     window.addEventListener('pokemo-points-change', updateInterface);
     window.addEventListener('pokemo-starter-change', () => {
         if (gameState !== 'playing' && gameState !== 'game-over') {

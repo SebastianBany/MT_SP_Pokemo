@@ -1,6 +1,8 @@
 (function () {
     const rowCount = 8;
     const columnCount = 3;
+    const firstRowSurvivalChance = 0.75;
+    const lastRowSurvivalChance = 0.10;
     const jumpAnimationDuration = 380;
     const spriteLoadTimeout = 5000;
     const board = document.getElementById('glutoxBoard');
@@ -9,6 +11,7 @@
     const startButton = document.getElementById('glutoxStart');
     const exitButton = document.getElementById('glutoxExit');
     const stakeInput = document.getElementById('glutoxStake');
+    const allInButton = document.getElementById('glutoxAllIn');
     const betPanel = document.getElementById('glutoxBet');
     const availablePoints = document.getElementById('glutoxAvailablePoints');
     const status = document.getElementById('glutoxStatus');
@@ -16,10 +19,13 @@
     const multiplierLabel = document.getElementById('glutoxMultiplier');
     const payout = document.getElementById('glutoxPayout');
     const payoutAmount = document.getElementById('glutoxPayoutAmount');
+    const gameOverOverlay = document.getElementById('glutoxGameOverOverlay');
+    const restartButton = document.getElementById('glutoxRestart');
 
     if (!board || tiles.length !== rowCount * columnCount || !pokemon || !startButton
-        || !exitButton || !stakeInput || !betPanel || !availablePoints || !status
-        || !stateLabel || !multiplierLabel || !payout || !payoutAmount) {
+        || !exitButton || !stakeInput || !allInButton || !betPanel || !availablePoints || !status
+        || !stateLabel || !multiplierLabel || !payout || !payoutAmount
+        || !gameOverOverlay || !restartButton) {
         throw new Error('Glutox is missing required game elements.');
     }
 
@@ -38,8 +44,7 @@
     let pokemonImageLoaded = false;
     let currentLevel = 0;
     let currentStake = 0;
-    let failedRowsByColumn = [];
-    let previousFailedRows = null;
+    let allInSelected = false;
     let positionedTile = null;
     let transitionTimer = null;
     let roundRecorded = true;
@@ -53,24 +58,32 @@
         return 1.04 * Math.pow(20 / 1.04, (level - 1) / (rowCount - 1));
     }
 
+    // Interpolates the survival chance from the first to the final row.
+    function survivalChanceFor(row) {
+        const progress = row / (rowCount - 1);
+        return firstRowSurvivalChance
+            + (lastRowSurvivalChance - firstRowSurvivalChance) * progress;
+    }
+
     // Keeps multiplier labels short on buttons and the board.
     function formatMultiplier(level) {
         return Number(multiplierFor(level).toFixed(2)).toString();
     }
 
     // Reads and validates the stake from the bet dialog.
-    function stakeForRound() {
+    function stakeForRound(balance) {
         const stake = stakeInput.valueAsNumber;
-        return Number.isSafeInteger(stake) && stake > 0 ? stake : null;
+        return Number.isSafeInteger(stake) && stake > 0
+            && (stake % 10 === 0 || (allInSelected && stake === balance)) ? stake : null;
     }
 
     // Updates buttons, available points, multipliers, and round state.
     function updateInterface() {
         const isPlaying = gameState === 'playing';
         const isRoundActive = isPlaying || gameState === 'jumping' || gameState === 'losing'
-            || gameState === 'cashing-out';
+            || gameState === 'cashing-out' || gameState === 'game-over';
         const balance = window.PokemoPoints.getBalance();
-        const stake = stakeForRound();
+        const stake = stakeForRound(balance);
         const labels = {
             loading: 'POKÉMON LÄDT',
             ready: 'BEREIT',
@@ -81,6 +94,7 @@
             lost: 'RUN BEENDET',
             'cashed-out': 'AUSGESTIEGEN',
             won: 'ZIEL ERREICHT',
+            'game-over': 'GAME OVER',
             'load-error': 'OFFLINE'
         };
 
@@ -90,6 +104,7 @@
         exitButton.textContent = `Auszahlen (x${formatMultiplier(currentLevel)})`;
         availablePoints.textContent = balance.toLocaleString('de-DE');
         stakeInput.max = String(Math.floor(balance));
+        allInButton.disabled = Math.floor(balance) < 1;
         startButton.disabled = gameState === 'loading'
             || (gameState !== 'load-error' && (!pokemonImageLoaded || stake === null || stake > balance));
         startButton.textContent = gameState === 'loading'
@@ -100,6 +115,11 @@
         multiplierLabel.textContent = `x${formatMultiplier(currentLevel)}`;
         stateLabel.textContent = labels[gameState];
         stateLabel.dataset.state = gameState;
+        window.PokemoAnimations.setGameOverVisible(
+            gameOverOverlay,
+            gameState === 'game-over',
+            restartButton
+        );
 
         tiles.forEach((tile) => {
             const row = Number(tile.dataset.row);
@@ -148,6 +168,10 @@
         console.warn('Glutox could not load the Pokémon sprite; the game will continue without it.', error);
         pokemonImageLoaded = true;
         pokemon.hidden = true;
+        if (window.PokemoPoints.getBalance() === 0) {
+            enterGameOver();
+            return;
+        }
         gameState = 'ready';
         status.textContent = 'Pokémon konnte nicht von der PokéAPI geladen werden. Du kannst trotzdem spielen.';
         updateInterface();
@@ -167,8 +191,12 @@
                 pokemon.src = image.src;
                 pokemon.alt = `Pokémon Nummer ${pokemonId}`;
                 pokemonImageLoaded = true;
+                if (window.PokemoPoints.getBalance() === 0) {
+                    enterGameOver();
+                    return;
+                }
                 gameState = 'ready';
-                status.textContent = 'Dein Pokémon ist bereit. Wähle ein Feld in der untersten Reihe.';
+                status.textContent = `Dein Pokémon ist bereit. Wähle ein Feld in Reihe 1. Deine Chance: ${Math.round(survivalChanceFor(0) * 100)} %.`;
                 updateInterface();
             })
             .catch(handlePokemonSpriteError);
@@ -184,29 +212,15 @@
         positionedTile = tile;
     }
 
-    // Chooses one unsafe field per column for the next round.
-    function generateFailedRows() {
-        const failedRows = Array.from({ length: columnCount }, () => Math.floor(Math.random() * rowCount));
-        if (failedRows[0] === failedRows[1] && failedRows[1] === failedRows[2]) {
-            failedRows[2] = (failedRows[2] + 1) % rowCount;
-        }
-        if (previousFailedRows && failedRows.every((row, column) => row === previousFailedRows[column])) {
-            failedRows[2] = (failedRows[2] + 1) % rowCount;
-            if (failedRows[0] === failedRows[1] && failedRows[1] === failedRows[2]) {
-                failedRows[2] = (failedRows[2] + 1) % rowCount;
-            }
-        }
-
-        previousFailedRows = failedRows;
-        return failedRows;
+    function clearTileHighlights() {
+        tiles.forEach((tile) => {
+            tile.classList.remove('is-safe', 'is-danger', 'is-unselected');
+        });
     }
 
-    // Clears old highlights and prepares a fresh randomized board.
+    // Clears old highlights and prepares a fresh board.
     function resetBoard() {
-        tiles.forEach((tile) => {
-            tile.classList.remove('is-safe', 'is-danger');
-        });
-        failedRowsByColumn = generateFailedRows();
+        clearTileHighlights();
         currentLevel = 0;
         pokemon.classList.remove('is-jumping');
         pokemon.style.opacity = '';
@@ -235,7 +249,7 @@
                 window.PokemoAchievements.recordGlutoxVictory();
             }
             status.setAttribute('aria-live', 'polite');
-            status.textContent = `${message} Du erhältst ${amount.toLocaleString('de-DE')} Pokémo-Punkte (x${multiplier}).`;
+            status.textContent = `${message} Du erhältst ${String(amount)} Pokémo-Punkte (x${multiplier}).`;
             updateInterface();
         });
     }
@@ -247,19 +261,24 @@
         }
 
         const row = Number(tile.dataset.row);
-        const column = Number(tile.dataset.column);
         if (row !== currentLevel) {
             return;
         }
 
-        const isSafe = failedRowsByColumn[column] !== row;
+        const survivalChance = survivalChanceFor(row);
+        const isSafe = Math.random() < survivalChance;
+        tiles.forEach((rowTile) => {
+            if (Number(rowTile.dataset.row) === row && rowTile !== tile) {
+                rowTile.classList.add('is-unselected');
+            }
+        });
         tile.classList.add(isSafe ? 'is-safe' : 'is-danger');
         gameState = isSafe ? 'jumping' : 'losing';
         positionPokemon(tile);
         pokemon.classList.add('is-jumping');
         status.textContent = isSafe
             ? `Sicher! Reihe ${row + 1} geschafft, der Multiplikator steigt auf x${formatMultiplier(currentLevel + 1)}.`
-            : `Oh nein! Dein Pokémon springt auf das falsche Feld in Reihe ${row + 1} ...`;
+            : `Oh nein! Dein Pokémon stürzt in Reihe ${row + 1} ab. Deine Chance lag bei ${Math.round(survivalChance * 100)} %.`;
         updateInterface();
 
         transitionTimer = window.setTimeout(() => {
@@ -274,7 +293,11 @@
                     pokemon.hidden = true;
                     gameState = 'lost';
                     recordCompletedRound(false, 0);
-                    status.textContent = `Bei deinem Sprung in Reihe ${row + 1} bist du abgestürzt. Dein Einsatz von ${currentStake} Pokémo-Punkten ist verloren.`;
+                    status.textContent = `Bei deinem Sprung in Reihe ${row + 1} bist du abgestürzt. Dein bisher sicherer Weg bleibt grün markiert. Dein Einsatz von ${currentStake} Pokémo-Punkten ist verloren.`;
+                    if (window.PokemoPoints.getBalance() === 0) {
+                        enterGameOver();
+                        return;
+                    }
                     updateInterface();
                 });
                 return;
@@ -287,7 +310,7 @@
             }
 
             gameState = 'playing';
-            status.textContent = `Sicher gelandet! Wähle ein Feld in Reihe ${currentLevel + 1}.`;
+            status.textContent = `Sicher gelandet! Wähle ein Feld in Reihe ${currentLevel + 1}. Deine Chance: ${Math.round(survivalChanceFor(currentLevel) * 100)} %.`;
             updateInterface();
         }, jumpAnimationDuration);
     }
@@ -298,23 +321,25 @@
             return;
         }
 
-        const stake = stakeForRound();
         const balance = window.PokemoPoints.getBalance();
+        const stake = stakeForRound(balance);
         if (stake === null || stake > balance) {
-            status.textContent = 'Der Einsatz muss eine positive ganze Zahl sein und darf dein Guthaben nicht überschreiten.';
+            status.textContent = 'Der Einsatz muss ein Vielfaches von 10 oder dein gesamtes Guthaben sein.';
             updateInterface();
             stakeInput.focus();
             return;
         }
 
         currentStake = stake;
+        allInSelected = false;
         window.PokemoPoints.setBalance(balance - currentStake);
         roundRecorded = false;
         window.clearTimeout(transitionTimer);
         payout.hidden = true;
         resetBoard();
         gameState = 'playing';
-        status.textContent = 'Die Runde läuft. Wähle ein Feld in der untersten Reihe.';
+        roundRecorded = false;
+        status.textContent = `Die Runde läuft. Deine Chance in Reihe 1: ${Math.round(survivalChanceFor(0) * 100)} %.`;
         updateInterface();
     }
 
@@ -335,6 +360,26 @@
         runPayout('cashed-out', `Du zahlst mit x${formatMultiplier(currentLevel)} aus.`);
     }
 
+    // Resets the profile and balance after the last points are lost.
+    function enterGameOver() {
+        gameState = 'game-over';
+        currentStake = 0;
+        stakeInput.value = '10';
+        window.PokemoPoints.reset();
+        window.PokemoProfile.reset();
+        status.textContent = 'Game Over. Dein Spielstand wurde zurückgesetzt.';
+        updateInterface();
+    }
+
+    function restartGame() {
+        if (gameState === 'game-over') {
+            clearTileHighlights();
+            currentLevel = 0;
+            pokemon.hidden = true;
+            loadPokemon();
+        }
+    }
+
     startButton.addEventListener('click', () => {
         if (gameState === 'load-error') {
             loadPokemon();
@@ -344,10 +389,23 @@
     });
     tiles.forEach((tile) => tile.addEventListener('click', () => chooseTile(tile)));
     exitButton.addEventListener('click', exitGame);
-    stakeInput.addEventListener('input', updateInterface);
+    window.PokemoAnimations.bindAllInButton(
+        allInButton,
+        stakeInput,
+        () => window.PokemoPoints.getBalance(),
+        () => {
+            allInSelected = true;
+            updateInterface();
+        }
+    );
+    restartButton.addEventListener('click', restartGame);
+    stakeInput.addEventListener('input', () => {
+        allInSelected = false;
+        updateInterface();
+    });
     window.addEventListener('pokemo-points-change', updateInterface);
     window.addEventListener('pokemo-starter-change', () => {
-        if (!['playing', 'jumping', 'losing', 'cashing-out'].includes(gameState)) {
+        if (!['playing', 'jumping', 'losing', 'cashing-out', 'game-over'].includes(gameState)) {
             loadPokemon();
         }
     });

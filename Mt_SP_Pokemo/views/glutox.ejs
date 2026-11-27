@@ -36,7 +36,8 @@
                             <span class="glutox-bet-kicker">DEIN EINSATZ</span>
                             <h3 id="glutoxBetTitle">Wie viele Pokémo-Punkte setzt du?</h3>
                             <label for="glutoxStake">Einsatz</label>
-                            <input id="glutoxStake" type="number" min="1" step="1" value="10" inputmode="numeric">
+                            <input id="glutoxStake" type="number" min="10" step="10" value="10" inputmode="numeric">
+                            <button class="glutox-button glutox-button-all-in game-all-in-button" id="glutoxAllIn" type="button">All-in</button>
                             <p class="glutox-balance">Verfügbares Guthaben: <strong id="glutoxAvailablePoints">500</strong></p>
                             <button class="glutox-button glutox-button-start" id="glutoxStart" type="button" disabled>Pokémon wird geladen ...</button>
                         </section>
@@ -58,3 +59,11 @@
         </section>
     </section>
 </main>
+<div class="game-over-overlay" id="glutoxGameOverOverlay" role="alertdialog" aria-modal="true" aria-labelledby="glutoxGameOverTitle" hidden>
+    <section class="game-over-card">
+        <span class="game-over-kicker">DEIN GUTHABEN IST AUFGEBRAUCHT</span>
+        <h2 id="glutoxGameOverTitle">GAME OVER</h2>
+        <p>Dein Spielstand wurde zurückgesetzt. Starte mit deinem Starter-Pokémon und frischen Pokémo-Punkten neu.</p>
+        <button class="glutox-button glutox-button-start game-over-restart-button" id="glutoxRestart" type="button">Von vorne anfangen</button>
+    </section>
+</div>

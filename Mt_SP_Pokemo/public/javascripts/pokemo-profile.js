@@ -16,6 +16,11 @@
             : defaultStarterPokemonId;
     }
 
+    function hasStarterSelection() {
+        const savedId = localStorage.getItem(storageKey);
+        return savedId !== null && starterPokemonIds.includes(Number(savedId));
+    }
+
     function setStarterPokemonId(pokemonId) {
         if (!starterPokemonIds.includes(pokemonId)) {
             throw new RangeError('Choose one of the three starter Pokémon.');
@@ -90,7 +95,8 @@
             button.type = 'button';
             button.className = 'starter-pokemon-option';
             button.setAttribute('aria-label', `${pokemon.name} auswählen`);
-            button.classList.toggle('is-selected', pokemon.id === getStarterPokemonId());
+            button.classList.toggle('is-selected',
+                hasStarterSelection() && pokemon.id === getStarterPokemonId());
 
             const image = document.createElement('img');
             image.src = getPokemonImage(pokemon);
@@ -134,6 +140,10 @@
     });
 
     document.addEventListener('DOMContentLoaded', () => {
+        if (!hasStarterSelection()) {
+            openPokemonPicker();
+        }
+
         PokeAPI.getPokemon(getStarterPokemonId())
             .then((pokemon) => {
                 starterPokemon = [pokemon];
