@@ -108,9 +108,9 @@
         startButton.disabled = gameState === 'loading'
             || (gameState !== 'load-error' && (!pokemonImageLoaded || stake === null || stake > balance));
         startButton.textContent = gameState === 'loading'
-            ? 'Pokémon wird geladen ...'
+            ? 'Pokemo wird geladen ...'
             : gameState === 'load-error'
-                ? 'Pokémon erneut laden'
+                ? 'Pokemo erneut laden'
                 : gameState === 'ready' ? 'Runde starten' : 'Neue Runde';
         multiplierLabel.textContent = `x${formatMultiplier(currentLevel)}`;
         stateLabel.textContent = labels[gameState];
@@ -140,7 +140,7 @@
     // Tries the sprite URLs in order and rejects if none can be loaded.
     function loadSprite(urls, index) {
         if (index >= urls.length) {
-            return Promise.reject(new Error('No usable Pokémon sprite was returned by PokéAPI.'));
+            return Promise.reject(new Error('No usable Pokemo image was returned by PokéAPI.'));
         }
 
         return new Promise((resolve, reject) => {
@@ -165,7 +165,7 @@
 
     // Allows play to continue without a sprite when loading fails.
     function handlePokemonSpriteError(error) {
-        console.warn('Glutox could not load the Pokémon sprite; the game will continue without it.', error);
+        console.warn('Glutox could not load the Pokemo image; the game will continue without it.', error);
         pokemonImageLoaded = true;
         pokemon.hidden = true;
         if (window.PokemoPoints.getBalance() === 0) {
@@ -173,7 +173,7 @@
             return;
         }
         gameState = 'ready';
-        status.textContent = 'Pokémon konnte nicht von der PokéAPI geladen werden. Du kannst trotzdem spielen.';
+        status.textContent = 'Pokemo konnte nicht geladen werden. Du kannst trotzdem spielen.';
         updateInterface();
     }
 
@@ -181,7 +181,7 @@
     function loadPokemon() {
         gameState = 'loading';
         pokemonImageLoaded = false;
-        status.textContent = 'Ein Pokémon wird aus der PokéAPI geladen ...';
+        status.textContent = 'Dein Pokemo wird geladen ...';
         updateInterface();
 
         const pokemonId = window.PokemoProfile.getStarterPokemonId();
@@ -189,14 +189,14 @@
             .then((pokemon) => loadSprite(spriteUrlsFor(pokemon), 0))
             .then((image) => {
                 pokemon.src = image.src;
-                pokemon.alt = `Pokémon Nummer ${pokemonId}`;
+                pokemon.alt = `Pokemo Nummer ${pokemonId}`;
                 pokemonImageLoaded = true;
                 if (window.PokemoPoints.getBalance() === 0) {
                     enterGameOver();
                     return;
                 }
                 gameState = 'ready';
-                status.textContent = `Dein Pokémon ist bereit. Wähle ein Feld in Reihe 1. Deine Chance: ${Math.round(survivalChanceFor(0) * 100)} %.`;
+                status.textContent = `Dein Pokemo ist bereit. Wähle ein Feld in Reihe 1. Deine Chance: ${Math.round(survivalChanceFor(0) * 100)} %.`;
                 updateInterface();
             })
             .catch(handlePokemonSpriteError);
@@ -249,7 +249,7 @@
                 window.PokemoAchievements.recordGlutoxVictory();
             }
             status.setAttribute('aria-live', 'polite');
-            status.textContent = `${message} Du erhältst ${String(amount)} Pokémo-Punkte (x${multiplier}).`;
+            status.textContent = `${message} Du erhältst ${amount.toLocaleString('de-DE')} Pokemo-Punkte (x${multiplier}).`;
             updateInterface();
         });
     }
@@ -278,7 +278,7 @@
         pokemon.classList.add('is-jumping');
         status.textContent = isSafe
             ? `Sicher! Reihe ${row + 1} geschafft, der Multiplikator steigt auf x${formatMultiplier(currentLevel + 1)}.`
-            : `Oh nein! Dein Pokémon stürzt in Reihe ${row + 1} ab. Deine Chance lag bei ${Math.round(survivalChance * 100)} %.`;
+            : `Oh nein! Dein Pokemo stürzt in Reihe ${row + 1} ab. Deine Chance lag bei ${Math.round(survivalChance * 100)} %.`;
         updateInterface();
 
         transitionTimer = window.setTimeout(() => {
@@ -293,7 +293,7 @@
                     pokemon.hidden = true;
                     gameState = 'lost';
                     recordCompletedRound(false, 0);
-                    status.textContent = `Bei deinem Sprung in Reihe ${row + 1} bist du abgestürzt. Dein bisher sicherer Weg bleibt grün markiert. Dein Einsatz von ${currentStake} Pokémo-Punkten ist verloren.`;
+                    status.textContent = `Bei deinem Sprung in Reihe ${row + 1} bist du abgestürzt. Dein bisher sicherer Weg bleibt grün markiert. Dein Einsatz von ${currentStake} Pokemo-Punkten ist verloren.`;
                     if (window.PokemoPoints.getBalance() === 0) {
                         enterGameOver();
                         return;

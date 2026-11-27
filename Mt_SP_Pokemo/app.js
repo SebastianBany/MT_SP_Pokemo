@@ -2,6 +2,7 @@ const express = require('express');
 const expressLayouts = require('express-ejs-layouts');
 const path = require('path');
 const requestLogger = require('morgan');
+const eggRoutes = require('./routes/egg');
 
 const server = express();
 
@@ -9,6 +10,7 @@ const server = express();
 server.use(express.static(path.join(__dirname, 'public')));
 server.use(express.urlencoded({ extended: false }));
 server.use(requestLogger('dev'));
+server.use('/api/egg', eggRoutes);
 
 // EJS template engine and layouts
 server.use(expressLayouts);

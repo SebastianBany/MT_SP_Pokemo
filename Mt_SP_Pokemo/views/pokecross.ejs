@@ -3,7 +3,7 @@
         <header class="game-heading">
             <div>
                 <h1>Pokecross<span class="heading-accent">.</span></h1>
-                <p class="game-subtitle">Springe mit deinem Pokemon über den Pfad.</p>
+                <p class="game-subtitle">Springe mit deinem Pokemo über den Pfad.</p>
             </div>
         </header>
 
@@ -12,11 +12,11 @@
                 <div>
                     <h2>Bereit für den nächsten Sprung?</h2>
                 </div>
-                <span class="state-chip" id="gameStateLabel" data-state="loading">POKEMON LÄDT</span>
+                <span class="state-chip" id="gameStateLabel" data-state="loading">POKEMO LÄDT</span>
             </header>
 
             <div class="canvas-container">
-                <canvas id="canvasPokecross" width="1280" height="460" role="img" aria-label="Spielfeld mit 22 Sprüngen, fünf sichtbaren Feldern, sinkender Überlebenschance und deinem Pokemon">
+                <canvas id="canvasPokecross" width="1280" height="460" role="img" aria-label="Spielfeld mit 22 Sprüngen, fünf sichtbaren Feldern, sinkender Überlebenschance und deinem Pokemo">
                     Dein Browser unterstützt das Canvas-Element nicht.
                 </canvas>
                 <div class="payout-animation" id="payoutAnimation" aria-hidden="true" hidden>
@@ -32,7 +32,7 @@
                         <input id="stakeAmount" type="number" min="10" step="10" value="10" inputmode="numeric" autofocus>
                         <button class="pokecross-button pokecross-button-all-in game-all-in-button" id="allInButton" type="button">All-in</button>
                         <p class="game-bet-balance">Verfügbares Guthaben: <strong id="availablePoints">100</strong></p>
-                        <button class="pokecross-button pokecross-button-start" id="startGame" type="button" disabled>Pokemon wird geladen ...</button>
+                        <button class="pokecross-button pokecross-button-start" id="startGame" type="button" disabled>Pokemo wird geladen ...</button>
                     </section>
                 </div>
             </div>
@@ -43,7 +43,7 @@
             </div>
 
             <div class="game-panel-footer">
-                <p class="game-status" id="gameStatus" role="status" aria-live="polite">Dein Pokemon wird aus der PokeAPI geladen.</p>
+                <p class="game-status" id="gameStatus" role="status" aria-live="polite">Dein Pokemo wird geladen.</p>
             </div>
         </section>
     </section>
@@ -52,7 +52,7 @@
     <section class="game-over-card">
         <span class="game-over-kicker">DEIN GUTHABEN IST AUFGEBRAUCHT</span>
         <h2 id="gameOverTitle">GAME OVER</h2>
-        <p>Dein Spielstand wurde zurückgesetzt. Starte mit deinem Starter-Pokemon und frischen Pokemo-Punkten neu.</p>
+        <p>Dein Spielstand wurde zurückgesetzt. Starte mit deinem Starter-Pokemo und frischen Pokemo-Punkten neu.</p>
         <button class="pokecross-button pokecross-button-start game-over-restart-button" id="restartGame" type="button">Von vorne anfangen</button>
     </section>
 </div>

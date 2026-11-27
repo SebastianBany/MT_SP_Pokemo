@@ -37,6 +37,16 @@
         oder der lokale Browserspeicher gelöscht wird.
         Die Eingabe ist freiwillig.
     </p>
+    <p>
+        Ergebnisse aus ausgebrüteten Eiern werden zusätzlich
+        serverseitig in einer JSON-Datei gespeichert.
+        Dazu wird ein zufälliges, nicht mit dem Benutzernamen
+        verknüpftes Kennzeichen in einem HttpOnly-Cookie
+        gespeichert. Das Cookie läuft nach einem Jahr ab.
+        Die Zuordnung geht nach Ablauf des Cookies verloren.
+        Der Eintrag bleibt in der Serverdatei, bis diese
+        gelöscht wird.
+    </p>
 
     <h2>4. Technische Zugriffsdaten</h2>
     <p>
@@ -80,6 +90,12 @@
         ausschließlich der lokale Browserspeicher
         (localStorage) verwendet.
     </p>
+    <p>
+        Für die Ei-Sammlung wird zusätzlich ein notwendiges
+        HttpOnly-Cookie verwendet. Es dient nur dazu, die
+        Sammlung demselben Browser zuzuordnen und wird nicht
+        für Werbung oder Tracking eingesetzt.
+    </p>
 
     <h2>7. Weitergabe von Daten</h2>
     <p>
@@ -87,6 +103,16 @@
         und geben diese nicht zu Werbezwecken weiter.
         Technische Daten können im Rahmen des Hostings
         durch Microsoft verarbeitet werden.
+    </p>
+    <p>
+        Spieldaten und Verfügbarkeiten werden serverseitig
+        von <a href="https://pokeapi.co/">PokéAPI</a> und
+        <a href="https://pogoapi.net/">PoGoAPI</a> geladen.
+        Spielbilder werden von den
+        <a href="https://github.com/PokeAPI/sprites">PokéAPI-Sprites</a>
+        über GitHub geladen. Dabei können die Anbieter übliche
+        technische Verbindungsdaten erhalten. Benutzername und
+        Ei-Sammlung werden nicht an diese Anbieter übertragen.
     </p>
 
     <h2>8. Rechte der Nutzer</h2>

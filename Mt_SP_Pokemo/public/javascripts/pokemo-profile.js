@@ -23,7 +23,7 @@
 
     function setStarterPokemonId(pokemonId) {
         if (!starterPokemonIds.includes(pokemonId)) {
-            throw new RangeError('Choose one of the three starter Pokémon.');
+            throw new RangeError('Wähle eines der drei Starter-Pokemos.');
         }
 
         localStorage.setItem(storageKey, String(pokemonId));
@@ -81,7 +81,7 @@
             renderStarterPokemon();
         } catch (error) {
             document.getElementById('pokemonCount').textContent =
-                'Starter-Pokemos konnten nicht von der PokéAPI geladen werden.';
+                'Starter-Pokemos konnten nicht geladen werden.';
         }
     }
 
@@ -150,7 +150,7 @@
                 renderProfilePokemon();
             })
             .catch((error) => {
-                console.error('Das Profil-Pokémon konnte nicht von der PokéAPI geladen werden.', error);
+                console.error('Das Pokemo-Profil konnte nicht geladen werden.', error);
             });
 
         const picker = document.getElementById('pokemonPicker');

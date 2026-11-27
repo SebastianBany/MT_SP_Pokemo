@@ -7,6 +7,10 @@
 			</button>
 		</div>
 
+		<button class="egg-button" type="button" aria-label="Pokemo-Ei öffnen" onclick="openEggBox()">
+			<img class="egg-icon" src="/images/pokemon-egg.png" alt="">
+		</button>
+
 		<div class="profile-card">
 			<button class="profile-picture pokemon-profile-button" type="button" aria-label="Pokemo auswählen" aria-haspopup="dialog" onclick="openPokemonPicker()">
 				<span class="profile-menu-dots" aria-hidden="true">&#8942;</span>
@@ -30,6 +34,38 @@
 			</div>
 			<div class="starter-pokemon-list" id="starterPokemonList" aria-label="Starter-Pokemos"></div>
 			<p class="pokemon-count" id="pokemonCount">Pokemos werden geladen...</p>
+		</dialog>
+
+		<dialog class="egg-box" id="eggBox" aria-labelledby="eggBoxTitle">
+			<div class="egg-box-header">
+				<h2 id="eggBoxTitle">Pokemo-Ei</h2>
+				<button class="egg-box-close" type="button" onclick="closeEggBox()" aria-label="Fenster schließen">&times;</button>
+			</div>
+
+			<details class="egg-odds">
+				<summary>Varianten anzeigen</summary>
+				<div class="egg-variants" aria-label="Varianten-Wahrscheinlichkeiten">
+					<span><b>Normal:</b> 97 %</span>
+					<span><b>Shiny:</b> 2 %</span>
+					<span><b>Golden:</b> 0,8 %</span>
+					<span><b>Diamond:</b> 0,15 %</span>
+					<span><b>Rainbow:</b> 0,04 %</span>
+					<span><b>Shadow:</b> 0,01 %</span>
+				</div>
+				<p class="egg-source">Datenquelle: PokéAPI. Shiny-/Shadow-Verfügbarkeit: PoGoAPI. Farbvarianten sind spielintern.</p>
+			</details>
+
+			<div class="egg-result-area">
+				<div class="egg-animation" id="eggAnimation" aria-hidden="true">
+					<img class="egg-icon large" src="/images/pokemon-egg.png" alt="">
+				</div>
+				<img class="egg-pokemon-image" id="eggPokemonImage" src="" alt="" hidden>
+				<h3 class="egg-pokemon-name" id="eggPokemonName"></h3>
+				<p class="egg-variant" id="eggVariant"></p>
+				<p class="egg-message" id="eggMessage" role="status" aria-live="polite">Klicke auf das Ei, um ein Pokemo zu ziehen!</p>
+			</div>
+
+			<button class="egg-open-button" id="eggOpenButton" type="button" onclick="openEgg()">Ei öffnen</button>
 		</dialog>
 		
 		<dialog class="drawer drawer-end" tabindex="-1" id="navbarNavAltMarkup" aria-labelledby="navbarNavAltMarkupLabel">

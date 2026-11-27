@@ -308,9 +308,9 @@
         startButton.disabled = gameState === 'loading'
             || (gameState !== 'load-error' && (!pokemonReady || stake === null || stake > balance));
         startButton.textContent = gameState === 'loading'
-            ? 'Pokemon wird geladen ...'
+            ? 'Pokemo wird geladen ...'
             : gameState === 'load-error'
-                ? 'Pokemon erneut laden'
+                ? 'Pokemo erneut laden'
                 : gameState === 'ready' ? 'Runde starten' : 'Neue Runde';
         window.PokemoAnimations.setGameOverVisible(
             gameOverOverlay,
@@ -337,7 +337,7 @@
     // Tries the sprite URLs in order and rejects if none can be loaded.
     function loadSprite(urls, index) {
         if (index >= urls.length) {
-            return Promise.reject(new Error('No usable Pokemon sprite was returned by PokeAPI.'));
+            return Promise.reject(new Error('No usable Pokemo image was returned by PokeAPI.'));
         }
 
         return new Promise((resolve, reject) => {
@@ -362,7 +362,7 @@
 
     // Lets the round continue with a placeholder if sprite loading fails.
     function handlePokemonSpriteError(error) {
-        console.warn('Pokecross could not load the Pokemon sprite; the game will continue without it.', error);
+        console.warn('Pokecross could not load the Pokemo image; the game will continue without it.', error);
         pokemonReady = true;
         pokemonImage = null;
         if (window.PokemoPoints.getBalance() === 0) {
@@ -370,7 +370,7 @@
             return;
         }
         gameState = 'ready';
-        status.textContent = 'Das Pokemon-Bild konnte nicht geladen werden. Du kannst trotzdem spielen.';
+        status.textContent = 'Das Pokemo-Bild konnte nicht geladen werden. Du kannst trotzdem spielen.';
         updateInterface();
         draw();
     }
@@ -379,7 +379,7 @@
     function loadPokemon() {
         gameState = 'loading';
         pokemonReady = false;
-        status.textContent = 'Ein Pokemon wird aus der PokeAPI geladen ...';
+        status.textContent = 'Dein Pokemo wird geladen ...';
         updateInterface();
         draw();
 
@@ -394,7 +394,7 @@
                     return;
                 }
                 gameState = 'ready';
-                status.textContent = 'Dein Pokemon ist bereit. Wie weit traust du dich?';
+                status.textContent = 'Dein Pokemo ist bereit. Wie weit traust du dich?';
                 updateInterface();
                 draw();
             })
