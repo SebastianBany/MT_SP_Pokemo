@@ -30,7 +30,7 @@
                         <h3 id="gameBetTitle">Wie viele Pokemo-Punkte setzt du?</h3>
                         <label for="stakeAmount">Einsatz</label>
                         <input id="stakeAmount" type="number" min="10" step="10" value="10" inputmode="numeric" autofocus>
-                        <button class="pokecross-button pokecross-button-all-in" id="allInButton" type="button">All-in</button>
+                        <button class="pokecross-button pokecross-button-all-in game-all-in-button" id="allInButton" type="button">All-in</button>
                         <p class="game-bet-balance">Verfügbares Guthaben: <strong id="availablePoints">100</strong></p>
                         <button class="pokecross-button pokecross-button-start" id="startGame" type="button" disabled>Pokemon wird geladen ...</button>
                     </section>
@@ -53,6 +53,6 @@
         <span class="game-over-kicker">DEIN GUTHABEN IST AUFGEBRAUCHT</span>
         <h2 id="gameOverTitle">GAME OVER</h2>
         <p>Dein Spielstand wurde zurückgesetzt. Starte mit deinem Starter-Pokemon und frischen Pokemo-Punkten neu.</p>
-        <button class="pokecross-button pokecross-button-start" id="restartGame" type="button">Von vorne anfangen</button>
+        <button class="pokecross-button pokecross-button-start game-over-restart-button" id="restartGame" type="button">Von vorne anfangen</button>
     </section>
 </div>

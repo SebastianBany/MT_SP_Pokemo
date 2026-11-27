@@ -13,7 +13,7 @@
   gap: 0.45rem;
   background: radial-gradient(ellipse at center, rgba(42, 33, 12, 0.55), rgba(7, 12, 19, 0.78));
   pointer-events: none;
-  animation: payout-appear 420ms ease-out both;
+  animation: payout-appear 600ms ease-out both;
 }
 
 .payout-animation-label {
@@ -35,6 +35,95 @@
 .payout-animation small {
   color: #e4e8cf;
   font-size: 0.85rem;
+}
+
+.game-over-overlay[hidden] {
+  display: none;
+}
+
+.game-over-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  box-sizing: border-box;
+  place-items: center;
+  padding: 1.25rem;
+  overflow-y: auto;
+  background: rgba(37, 17, 18, 0.78);
+  backdrop-filter: blur(5px);
+}
+
+.game-over-card {
+  display: grid;
+  justify-items: center;
+  gap: 0.8rem;
+  box-sizing: border-box;
+  width: min(100%, 38rem);
+  padding: clamp(1.5rem, 5vw, 3rem);
+  border: 2px solid #e8a29a;
+  border-radius: 1.1rem;
+  background: linear-gradient(145deg, #fffdfa, #f8e9e3);
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.42);
+  text-align: center;
+  animation: game-over-appear 420ms ease-out both;
+}
+
+.game-over-kicker {
+  color: #9c4540;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.game-over-card h2 {
+  margin: 0;
+  color: #bd3434;
+  font-size: clamp(3.2rem, 12vw, 7rem);
+  font-weight: 1000;
+  letter-spacing: -0.07em;
+  line-height: 0.95;
+  text-shadow: 0 5px 0 #f1c4b8, 0 10px 24px rgba(130, 32, 32, 0.2);
+}
+
+.game-over-card p {
+  max-width: 29rem;
+  margin: 0.2rem 0 0.7rem;
+  color: #5c514c;
+  font-size: clamp(0.9rem, 2.3vw, 1.05rem);
+  line-height: 1.55;
+}
+
+.game-over-restart-button {
+  min-width: min(100%, 16rem);
+}
+
+.game-all-in-button {
+  border-color: #e3c56f;
+  background: #f5e6ae;
+  color: #665225;
+}
+
+.game-all-in-button:hover:not(:disabled) {
+  background: #edda91;
+  filter: none;
+}
+
+@keyframes game-over-appear {
+  from {
+    opacity: 0;
+    transform: translateY(0.8rem) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-over-card {
+    animation: none;
+  }
 }
 
 @keyframes payout-appear {

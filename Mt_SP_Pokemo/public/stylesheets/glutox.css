@@ -85,6 +85,7 @@
 }
 
 .page-glutox .state-chip[data-state="lost"],
+.page-glutox .state-chip[data-state="game-over"],
 .page-glutox .state-chip[data-state="losing"],
 .page-glutox .state-chip[data-state="load-error"] {
   border-color: #ecc8be;
@@ -141,6 +142,13 @@
   cursor: default;
 }
 
+.glutox-tile:disabled:not(.is-safe):not(.is-danger) {
+  border-color: #c8c9c1;
+  background: linear-gradient(145deg, #e1e2dd, #d2d4ce);
+  box-shadow: none;
+  opacity: 0.72;
+}
+
 .glutox-tile:not(:disabled):hover {
   transform: translateY(-2px);
   border-color: #8eae63;
@@ -162,12 +170,6 @@
   border-color: #77a547;
   background: linear-gradient(145deg, #e1f3c6, #a8ce78);
   box-shadow: 0 0 0 3px rgba(119, 165, 71, 0.18), 0 5px 16px rgba(100, 145, 57, 0.2);
-}
-
-.glutox-tile.is-path {
-  border-color: #5b9840;
-  background: linear-gradient(145deg, #d9f3c1, #8fc96b);
-  box-shadow: 0 0 0 3px rgba(91, 152, 64, 0.2), 0 5px 16px rgba(78, 133, 52, 0.2);
 }
 
 .glutox-tile.is-danger {

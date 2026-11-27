@@ -1,6 +1,6 @@
 (function (global) {
     const fallDuration = 650;
-    const payoutDuration = 850;
+    const payoutDuration = 1300;
 
     function animateProgress(duration, onProgress, onComplete) {
         const startedAt = performance.now();
@@ -33,9 +33,36 @@
         }, onComplete);
     }
 
+    // Shares the stake balance with an all-in button.
+    function bindAllInButton(button, stakeInput, getBalance, onStakeChange) {
+        button.addEventListener('click', () => {
+            const maximumStake = Math.floor(getBalance());
+            if (maximumStake < 1) {
+                return;
+            }
+
+            stakeInput.value = String(maximumStake);
+            onStakeChange();
+        });
+    }
+
+    // Reveals the shared game-over overlay and focuses its restart action.
+    function setGameOverVisible(overlay, visible, focusTarget) {
+        if (overlay.hidden === !visible) {
+            return;
+        }
+
+        overlay.hidden = !visible;
+        if (visible) {
+            focusTarget.focus();
+        }
+    }
+
     global.PokemoAnimations = Object.freeze({
         animateProgress,
         animateFall,
-        animatePayout
+        animatePayout,
+        bindAllInButton,
+        setGameOverVisible
     });
 })(window);
