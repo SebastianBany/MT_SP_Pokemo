@@ -75,14 +75,15 @@
         const progress = readProgress();
         const previousLevel = progress.level;
         if (wasLoss) {
-            if (progress.xp < 2) {
+            const lostXp = progress.level === 2 ? 1 : 2;
+            if (progress.xp < lostXp) {
                 progress.level = Math.max(1, progress.level - 1);
                 progress.xp = 0;
             } else {
-                progress.xp -= 2;
+                progress.xp -= lostXp;
             }
         } else {
-            const earnedXp = progress.level === 1 ? 2 : 1;
+            const earnedXp = progress.level === 1 ? 5 : progress.level === 2 ? 2 : 1;
             if (!Number.isSafeInteger(progress.xp + earnedXp)) {
                 throw new RangeError('The saved Pokemo XP is too large.');
             }
