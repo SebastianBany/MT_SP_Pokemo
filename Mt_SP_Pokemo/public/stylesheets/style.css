@@ -374,6 +374,49 @@ footer {
   text-align: right;
 }
 
+.achievement-toast {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: min(22rem, calc(100vw - 2.5rem));
+  box-sizing: border-box;
+  padding: 0.9rem 1rem;
+  border: 1px solid #efb4b4;
+  border-radius: 12px;
+  background: #fff;
+  color: #222;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+  animation: achievement-toast-in 220ms ease-out;
+}
+
+.achievement-toast[hidden] {
+  display: none;
+}
+
+.achievement-toast-icon {
+  font-size: 1.8rem;
+}
+
+.achievement-toast-message {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.achievement-toast-message strong {
+  color: #b71c1c;
+  font-size: 0.8rem;
+}
+
+@keyframes achievement-toast-in {
+  from { transform: translateY(0.5rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 .footer-link:hover,
 .footer-home:hover { text-decoration: underline; }
 
@@ -383,7 +426,8 @@ footer {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .drawer[open] { animation: none; }
+  .drawer[open],
+  .achievement-toast { animation: none; }
 }
 
 @media (max-width: 480px) {
