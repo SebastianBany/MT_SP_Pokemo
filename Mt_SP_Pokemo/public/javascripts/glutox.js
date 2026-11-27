@@ -32,8 +32,8 @@
     if (!window.PokemoPoints || !window.PokemoProfile || !window.PokeAPI) {
         throw new Error('Glutox requires the shared profile, points, and PokéAPI services.');
     }
-    if (!window.PokemoStats || !window.PokemoAchievements) {
-        throw new Error('Glutox requires the shared statistics and achievements services.');
+    if (!window.PokemoStats || !window.PokemoAchievements || !window.PokemoProgression) {
+        throw new Error('Glutox requires the shared statistics, achievements, and progression services.');
     }
 
     if (!window.PokemoAnimations) {
@@ -184,7 +184,7 @@
         status.textContent = 'Ein Pokémon wird aus der PokéAPI geladen ...';
         updateInterface();
 
-        const pokemonId = window.PokemoProfile.getStarterPokemonId();
+        const pokemonId = window.PokemoProfile.getCurrentPokemonId();
         window.PokeAPI.getPokemon(pokemonId)
             .then((pokemon) => loadSprite(spriteUrlsFor(pokemon), 0))
             .then((image) => {
@@ -244,7 +244,7 @@
         window.PokemoAnimations.animatePayout(payoutAmount, amount, () => {
             payout.hidden = true;
             gameState = state;
-            const completedRound = recordCompletedRound(state === 'won', amount);
+            const completedRound = recordCompletedRound(state === 'won', amount, false);
             if (state === 'won' && completedRound) {
                 window.PokemoAchievements.recordGlutoxVictory();
             }
@@ -292,7 +292,7 @@
                     pokemon.style.transform = '';
                     pokemon.hidden = true;
                     gameState = 'lost';
-                    recordCompletedRound(false, 0);
+                    recordCompletedRound(false, 0, true);
                     status.textContent = `Bei deinem Sprung in Reihe ${row + 1} bist du abgestürzt. Dein bisher sicherer Weg bleibt grün markiert. Dein Einsatz von ${currentStake} Pokémo-Punkten ist verloren.`;
                     if (window.PokemoPoints.getBalance() === 0) {
                         enterGameOver();
@@ -338,15 +338,15 @@
         payout.hidden = true;
         resetBoard();
         gameState = 'playing';
-        roundRecorded = false;
         status.textContent = `Die Runde läuft. Deine Chance in Reihe 1: ${Math.round(survivalChanceFor(0) * 100)} %.`;
         updateInterface();
     }
 
-    function recordCompletedRound(won, earnedPoints) {
+    function recordCompletedRound(won, earnedPoints, wasLoss) {
         if (!roundRecorded) {
-            window.PokemoStats.completeRound(won, earnedPoints);
             roundRecorded = true;
+            window.PokemoStats.completeRound(won, earnedPoints);
+            window.PokemoProgression.completeGame(wasLoss);
             return true;
         }
         return false;
@@ -406,6 +406,13 @@
     window.addEventListener('pokemo-points-change', updateInterface);
     window.addEventListener('pokemo-starter-change', () => {
         if (!['playing', 'jumping', 'losing', 'cashing-out', 'game-over'].includes(gameState)) {
+            loadPokemon();
+        }
+    });
+    window.addEventListener('pokemo-progression-change', (event) => {
+        if (event.detail.formChanged
+            && !['playing', 'jumping', 'losing', 'cashing-out', 'game-over'].includes(gameState)
+            && !(gameState === 'lost' && window.PokemoPoints.getBalance() === 0)) {
             loadPokemon();
         }
     });

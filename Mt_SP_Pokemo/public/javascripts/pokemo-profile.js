@@ -3,6 +3,11 @@
     const defaultStarterPokemonId = starterPokemonIds[0];
     const storageKey = 'pokemoStarterPokemonId';
     let starterPokemon = [];
+    const profilePokemonById = new Map();
+
+    if (!global.PokemoProgression) {
+        throw new Error('The Pokemo profile requires the shared progression service.');
+    }
 
     function getStarterPokemonId() {
         const savedId = localStorage.getItem(storageKey);
@@ -33,6 +38,10 @@
         renderProfilePokemon();
     }
 
+    function getCurrentPokemonId() {
+        return global.PokemoProgression.getActivePokemonId(getStarterPokemonId());
+    }
+
     function getPokemonImage(pokemon) {
         return pokemon.sprites.other['official-artwork'].front_default
             || pokemon.sprites.front_default;
@@ -45,12 +54,27 @@
             return;
         }
 
-        const pokemonId = getStarterPokemonId();
-        const pokemon = starterPokemon.find((item) => item.id === pokemonId);
-        if (!pokemon) {
+        const pokemonId = getCurrentPokemonId();
+        const pokemon = starterPokemon.find((item) => item.id === pokemonId)
+            || profilePokemonById.get(pokemonId);
+        if (pokemon) {
+            applyProfilePokemon(button, image, pokemon);
             return;
         }
 
+        PokeAPI.getPokemon(pokemonId)
+            .then((loadedPokemon) => {
+                profilePokemonById.set(pokemonId, loadedPokemon);
+                if (getCurrentPokemonId() === pokemonId) {
+                    applyProfilePokemon(button, image, loadedPokemon);
+                }
+            })
+            .catch((error) => {
+                console.error('Das Profil-Pokémon konnte nicht von der PokéAPI geladen werden.', error);
+            });
+    }
+
+    function applyProfilePokemon(button, image, pokemon) {
         image.src = getPokemonImage(pokemon);
         image.alt = pokemon.name;
         image.hidden = false;
@@ -135,6 +159,7 @@
     global.PokemoProfile = Object.freeze({
         starterPokemonIds,
         getStarterPokemonId,
+        getCurrentPokemonId,
         setStarterPokemonId,
         reset
     });
@@ -144,14 +169,7 @@
             openPokemonPicker();
         }
 
-        PokeAPI.getPokemon(getStarterPokemonId())
-            .then((pokemon) => {
-                starterPokemon = [pokemon];
-                renderProfilePokemon();
-            })
-            .catch((error) => {
-                console.error('Das Profil-Pokémon konnte nicht von der PokéAPI geladen werden.', error);
-            });
+        renderProfilePokemon();
 
         const picker = document.getElementById('pokemonPicker');
         if (picker) {
@@ -163,4 +181,5 @@
         }
     });
 
+    global.addEventListener('pokemo-progression-change', renderProfilePokemon);
 })(window);

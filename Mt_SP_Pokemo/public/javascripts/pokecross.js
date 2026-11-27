@@ -30,8 +30,8 @@
     if (!window.PokemoPoints || !window.PokemoProfile) {
         throw new Error('Pokecross requires the shared Pokemo profile and points services.');
     }
-    if (!window.PokemoStats || !window.PokemoAchievements) {
-        throw new Error('Pokecross requires the shared statistics and achievements services.');
+    if (!window.PokemoStats || !window.PokemoAchievements || !window.PokemoProgression) {
+        throw new Error('Pokecross requires the shared statistics, achievements, and progression services.');
     }
 
     if (!window.PokemoAnimations) {
@@ -383,7 +383,7 @@
         updateInterface();
         draw();
 
-        const pokemonId = window.PokemoProfile.getStarterPokemonId();
+        const pokemonId = window.PokemoProfile.getCurrentPokemonId();
         window.PokeAPI.getPokemon(pokemonId)
             .then((pokemon) => loadSprite(spriteUrlsFor(pokemon), 0))
             .then((image) => {
@@ -467,7 +467,7 @@
         }, () => {
             fallAnimation = null;
             gameState = 'lost';
-            recordCompletedRound(false, 0);
+            recordCompletedRound(false, 0, true);
             if (window.PokemoPoints.getBalance() === 0) {
                 enterGameOver();
                 return;
@@ -524,10 +524,11 @@
         animatePayout(payout, multiplier, hasWon);
     }
 
-    function recordCompletedRound(won, earnedPoints) {
+    function recordCompletedRound(won, earnedPoints, wasLoss) {
         if (!roundRecorded) {
-            window.PokemoStats.completeRound(won, earnedPoints);
             roundRecorded = true;
+            window.PokemoStats.completeRound(won, earnedPoints);
+            window.PokemoProgression.completeGame(wasLoss);
             return true;
         }
         return false;
@@ -540,7 +541,7 @@
             if (hasWon) {
                 gameState = 'won';
             }
-            recordCompletedRound(hasWon, payout);
+            recordCompletedRound(hasWon, payout, false);
             status.setAttribute('aria-live', 'polite');
             status.textContent = hasWon
                 ? `Ziel erreicht! Du erhältst ${payout.toLocaleString('de-DE')} Pokemo-Punkte (x${multiplier}).`
@@ -601,6 +602,14 @@
     window.addEventListener('pokemo-points-change', updateInterface);
     window.addEventListener('pokemo-starter-change', () => {
         if (gameState !== 'playing' && gameState !== 'game-over') {
+            loadPokemon();
+        }
+    });
+    window.addEventListener('pokemo-progression-change', (event) => {
+        if (event.detail.formChanged
+            && gameState !== 'playing'
+            && gameState !== 'game-over'
+            && !(gameState === 'lost' && window.PokemoPoints.getBalance() === 0)) {
             loadPokemon();
         }
     });
