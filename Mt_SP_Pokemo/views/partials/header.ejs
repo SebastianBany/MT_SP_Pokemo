@@ -54,8 +54,27 @@
 
 	usernameInput.value = localStorage.getItem('username') || '';
 
+	function updateWelcomeTitle() {
+		var welcomeTitle = document.getElementById('welcomeTitle');
+		var username = usernameInput.value.trim();
+		if (welcomeTitle) {
+			welcomeTitle.textContent = username
+				? username + ', willkommen bei Pokemo'
+				: 'Willkommen bei Pokemo';
+		}
+	}
+
 	usernameInput.addEventListener('input', function () {
 		localStorage.setItem('username', usernameInput.value);
+		updateWelcomeTitle();
+	});
+
+	document.addEventListener('DOMContentLoaded', updateWelcomeTitle);
+	window.addEventListener('storage', function (event) {
+		if (event.key === 'username') {
+			usernameInput.value = event.newValue || '';
+			updateWelcomeTitle();
+		}
 	});
 
 	function toggleMenu() {

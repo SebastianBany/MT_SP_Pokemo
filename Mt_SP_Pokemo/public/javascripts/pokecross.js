@@ -30,6 +30,9 @@
     if (!window.PokemoPoints || !window.PokemoProfile) {
         throw new Error('Pokecross requires the shared Pokemo profile and points services.');
     }
+    if (!window.PokemoStats || !window.PokemoAchievements) {
+        throw new Error('Pokecross requires the shared statistics and achievements services.');
+    }
 
     if (!window.PokemoAnimations) {
         throw new Error('Pokecross requires the shared game animation service.');
@@ -48,7 +51,7 @@
     let pokemonImage = null;
     let pokemonReady = false;
     let currentStake = 0;
-    let allInSelected = false;
+    let roundRecorded = true;
 
     // Used for field labels and payouts to calculate the reward multiplier.
     function multiplierFor(jump) {
@@ -416,6 +419,7 @@
         currentStake = stake;
         allInSelected = false;
         window.PokemoPoints.setBalance(balance - currentStake);
+        roundRecorded = false;
         failedJump = null;
         position = 0;
         animation = null;
@@ -439,6 +443,7 @@
             return;
         }
 
+        window.PokemoAchievements.recordPokecrossProgress(position);
         if (position === circleCount) {
             exitGame();
             return;
@@ -462,6 +467,7 @@
         }, () => {
             fallAnimation = null;
             gameState = 'lost';
+            recordCompletedRound(false, 0);
             if (window.PokemoPoints.getBalance() === 0) {
                 enterGameOver();
                 return;
@@ -518,10 +524,23 @@
         animatePayout(payout, multiplier, hasWon);
     }
 
+    function recordCompletedRound(won, earnedPoints) {
+        if (!roundRecorded) {
+            window.PokemoStats.completeRound(won, earnedPoints);
+            roundRecorded = true;
+            return true;
+        }
+        return false;
+    }
+
     // Counts up the payout display and finishes the cash-out state.
     function animatePayout(payout, multiplier, hasWon) {
         window.PokemoAnimations.animatePayout(payoutAmount, payout, () => {
-            gameState = hasWon ? 'won' : 'cashed-out';
+            gameState = 'cashed-out';
+            if (hasWon) {
+                gameState = 'won';
+            }
+            recordCompletedRound(hasWon, payout);
             status.setAttribute('aria-live', 'polite');
             status.textContent = hasWon
                 ? `Ziel erreicht! Du erhältst ${payout.toLocaleString('de-DE')} Pokemo-Punkte (x${multiplier}).`
