@@ -27,6 +27,9 @@
     if (!window.PokemoPoints || !window.PokemoProfile || !window.PokeAPI) {
         throw new Error('Glutox requires the shared profile, points, and PokéAPI services.');
     }
+    if (!window.PokemoStats || !window.PokemoAchievements) {
+        throw new Error('Glutox requires the shared statistics and achievements services.');
+    }
 
     if (!window.PokemoAnimations) {
         throw new Error('Glutox requires the shared game animation service.');
@@ -41,6 +44,7 @@
     let previousFailedRows = null;
     let positionedTile = null;
     let transitionTimer = null;
+    let roundRecorded = true;
 
     // Used by the interface and payout to calculate the multiplier per row.
     function multiplierFor(level) {
@@ -249,6 +253,10 @@
         window.PokemoAnimations.animatePayout(payoutAmount, amount, () => {
             payout.hidden = true;
             gameState = state;
+            const completedRound = recordCompletedRound(state === 'won', amount);
+            if (state === 'won' && completedRound) {
+                window.PokemoAchievements.recordGlutoxVictory();
+            }
             status.setAttribute('aria-live', 'polite');
             status.textContent = `${message} Du erhältst ${String(amount)} Pokémo-Punkte (x${multiplier}).`;
             updateInterface();
@@ -294,6 +302,7 @@
                     pokemon.style.transform = '';
                     pokemon.hidden = true;
                     gameState = 'lost';
+                    recordCompletedRound(false, 0);
                     status.textContent = `Bei deinem Sprung in Reihe ${row + 1} bist du abgestürzt. Dein Einsatz von ${currentStake} Pokémo-Punkten ist verloren.`;
                     updateInterface();
                 });
@@ -330,6 +339,7 @@
         currentStake = stake;
         allInSelected = false;
         window.PokemoPoints.setBalance(balance - currentStake);
+        roundRecorded = false;
         window.clearTimeout(transitionTimer);
         payout.hidden = true;
         resetBoard();
@@ -338,15 +348,13 @@
         updateInterface();
     }
 
-    function selectAllIn() {
-        const balance = window.PokemoPoints.getBalance();
-        if (balance < 1) {
-            return;
+    function recordCompletedRound(won, earnedPoints) {
+        if (!roundRecorded) {
+            window.PokemoStats.completeRound(won, earnedPoints);
+            roundRecorded = true;
+            return true;
         }
-
-        stakeInput.value = String(balance);
-        allInSelected = true;
-        updateInterface();
+        return false;
     }
 
     // Pays out the current multiplier when the player cashes out.
